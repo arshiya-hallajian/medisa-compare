@@ -10,7 +10,6 @@ const mongoose = require("mongoose");
 require('dotenv').config();
 
 
-app.use(cors());
 
 
 
@@ -21,11 +20,12 @@ const storage = multer.diskStorage({
     filename: (req, file, callBack) => {
         callBack(null, `${file.originalname}`)
     }
-  })
+})
 let upload = multer({ dest: 'uploads/' })
 
 const app = express();
 
+app.use(cors());
 
 
 
