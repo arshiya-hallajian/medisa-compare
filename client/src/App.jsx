@@ -16,11 +16,11 @@ function App() {
     formData.append("csv", file[0])
     try{
       toast.info("Recieving Data..", { autoClose: false , toastId:85,position: "bottom-right", });
-      const res = await axios.post(`${import.meta.env.VITE_API}/csv`,formData);
+      const res = await axios.post(`${import.meta.env.VITE_API}/api/csv`,formData);
       
       
       if(res.status== 200){
-        const getdata = await axios.get(`${import.meta.env.VITE_API}/list`);
+        const getdata = await axios.get(`${import.meta.env.VITE_API}/api/list`);
         toast.update(85, { 
           render: "Done",
           type: toast.TYPE.SUCCESS,

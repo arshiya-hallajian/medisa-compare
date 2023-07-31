@@ -149,7 +149,7 @@ const saveToDatabase = async (data) => {
 
 
 
-app.post('/csv', upload.single('csv') ,async (req,res)=>{
+app.post('/api/csv', upload.single('csv') ,async (req,res)=>{
     const mpns = []; 
     const fileName = req.file;
 
@@ -172,7 +172,7 @@ app.post('/csv', upload.single('csv') ,async (req,res)=>{
 })
 
 
-app.get('/list',async (req,res)=>{
+app.get('/api/list',async (req,res)=>{
     try{
         const list = await Product.find();
         await Product.deleteMany({})
