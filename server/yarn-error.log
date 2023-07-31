@@ -1,0 +1,46 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\yarn\bin\yarn.js add puppeteer
+
+PATH: 
+  D:\Apps\VMware workstation\bin\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;D:\Apps\Microsoft VS Code\bin;C:\Users\arshi\AppData\Local\Microsoft\WindowsApps;C:\Program Files\JetBrains\IntelliJ IDEA 2022.1.3\bin;C:\Program Files\JetBrains\PyCharm 2022.1.3\bin;C:\Program Files\JetBrains\CLion 2022.1.3\bin;C:\ProgramData\chocolatey\bin;D:\Apps\putty\;C:\Program Files\Git\cmd;C:\Users\arshi\AppData\Local\Android\Sdk\platform-tools;C:\Users\arshi\AppData\Roaming\nvm;C:\Program Files\nodejs;D:\Apps\bitvisessh;C:\Users\arshi\.windows-build-tools\python27\;C:\Users\arshi\AppData\Local\Microsoft\WindowsApps;C:\Program Files\JetBrains\IntelliJ IDEA 2022.1.3\bin;C:\Program Files\JetBrains\PyCharm 2022.1.3\bin;C:\Program Files\JetBrains\CLion 2022.1.3\bin;C:\ProgramData\nvm;C:\Program Files\nodejs;C:\Users\arshi\AppData\Local\GitHubDesktop\bin;C:\Users\arshi\AppData\Roaming\nvm;C:\Program Files\nodejs;D:\Apps\mongodb shell\
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  20.0.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error [ERR_SOCKET_CONNECTION_TIMEOUT]: Socket connection timeout
+      at new NodeError (node:internal/errors:399:5)
+      at internalConnectMultiple (node:net:1098:20)
+      at Timeout.internalConnectMultipleTimeout (node:net:1637:3)
+      at listOnTimeout (node:internal/timers:575:11)
+      at process.processTimers (node:internal/timers:514:7)
+
+npm manifest: 
+  {
+    "name": "web-scraping",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "axios": "^1.4.0",
+      "cheerio": "^1.0.0-rc.12",
+      "express": "^4.18.2"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
