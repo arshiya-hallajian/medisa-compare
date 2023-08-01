@@ -127,6 +127,17 @@ const defaultSite = async (code,maxRetries = 3) => {
 
 const saveToDatabase = async (data) => {
     for(const everyCode of data){
+        try{
+
+        const Pexist = await Product.findOne({mpn: everyCode});
+
+        if(Pexist){
+            Pexist.Dprice = await defaultSite(everyCode);
+            Pexist.Cprice = await getAllProduct(everyCode,"price");
+            Pexist.Name = await getAllProduct(everyCode,"name");
+            await Pexist.save();
+        }else{
+
         const pp = new Product({
             mpn: everyCode
         });
@@ -143,6 +154,10 @@ const saveToDatabase = async (data) => {
 
 
         await pp.save();
+    }
+}catch(e){
+    console.log("save err")
+}
     }
 }
 
