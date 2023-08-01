@@ -64,7 +64,7 @@ function App() {
   }
 
   return (
-    <div className="h-screen overflow-x-auto flex flex-col items-center gap-2 pt-10 bg-slate-800 ">   
+    <div className="h-screen w-[260%] md:w-full overflow-x-auto flex flex-col items-center gap-2 pt-10 bg-slate-800 ">   
     <ToastContainer/>
     <div className="text-white flex gap-4">
       <p>please the csv of mpn here:</p>
@@ -73,7 +73,7 @@ function App() {
       <input type="submit" value="start searching" className="bg-orange-500 rounded-lg py-2 px-5 text-white mb-20"/>
       </form>
     </div>
-    <table className="my-10 w-5/6 min-h-20 h-20 text-center table-auto border-separate border-spacing-y-1 border text-white border-gray-200">
+    <table className="my-10 md:w-5/6 h-20 text-center table-auto border-separate border-spacing-y-1 border text-white border-gray-200">
       <thead className="bg-gray-600">
         <tr> 
           <th>NAMES</th>
