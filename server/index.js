@@ -1,4 +1,5 @@
 const axios = require('axios');
+axios.defaults.timeout = 10000;
 const express = require('express');
 const cheerio = require('cheerio');
 const multer = require('multer');
@@ -7,10 +8,13 @@ const fs = require("fs");
 const {parse} = require("csv-parse");
 const Product = require("./models/Data");
 const mongoose = require("mongoose");
+const http = require('http');
+const socketIo = require('socket.io');
 require('dotenv').config();
 
 
-
+let Global_all_count = null
+let Global_unit_count = null
 
 
 const storage = multer.diskStorage({
@@ -24,6 +28,8 @@ const storage = multer.diskStorage({
 let upload = multer({ dest: 'uploads/' })
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server)
 
 app.use(cors());
 
@@ -38,7 +44,7 @@ mongoose.connect(process.env.MONGODB_URL).then(()=>{
 
 
 // const ComPrice = []
-const getAllProduct = async (code,style,maxRetries = 3) => {
+const getAllProduct = async (code,style,maxRetries = 4) => {
     try{
         
             const url = `${process.env.COMP_URL}/catalogsearch/result/?q=${code}`
@@ -70,7 +76,7 @@ const getAllProduct = async (code,style,maxRetries = 3) => {
 
 
 
-const defaultSite = async (code,maxRetries = 3) => {
+const defaultSite = async (code,maxRetries = 4) => {
 
     try{
             const DefaulUrl = `${process.env.MAIN_URL}/search.php?search_query=${code}&section=product`
@@ -80,6 +86,8 @@ const defaultSite = async (code,maxRetries = 3) => {
             const price2 = $('article:eq(1)').find('[data-product-price-with-tax]:first').text();
             const name = $('article:first').find('h4.card-title > a').text();
             const name2 = $('article:eq(1)').find('h4.card-title > a').text();
+            const sku = $('article:first').find('div.card-text--sku').text().trim();
+            const sku2 = $('article:eq(1)').find('div.card-text--sku').text().trim();
             const split = name.split(" ")
             const split2 = name2.split(" ")
             
@@ -90,32 +98,83 @@ const defaultSite = async (code,maxRetries = 3) => {
 
             if(!price2){
                 console.log([pp,"null"],1)
-                return [pp,null]
+                return [{
+                    price: pp,
+                    sku: sku
+                },null]
             }else if((name.includes("Each") | name.includes("Box")) && split[0] !== split2[0]){
                 if(name.includes("Each")){
-                    console.log([pp,"null"],2 ,split[0], split2[0])
-                    return [pp,null]
+                    console.log([{
+                        price: pp,
+                        sku: sku
+                    },"null"],2 ,split[0], split2[0])
+                    return [{
+                        price: pp,
+                        sku: sku
+                    },null]
                 }else if(name.includes("Box")){
-                    console.log(["null",pp],2 ,split[0], split2[0])
-                    return [null,pp]
+                    console.log(["null",{
+                        price: pp,
+                        sku: sku
+                    }],2 ,split[0], split2[0])
+                    return [null,{
+                        price: pp,
+                        sku: sku
+                    }]
                 }
             }else if(name.includes("Each") && name2.includes("Box") && split[0] == split2[0]){
-                console.log([pp, pp2],3)
-                return [pp, pp2]
+                console.log([{
+                    price: pp,
+                    sku: sku
+                }, {
+                    price: pp2,
+                    sku: sku2
+                }],3)
+                return [{
+                    price: pp,
+                    sku: sku
+                }, {
+                    price: pp2,
+                    sku: sku2
+                }]
             }else if(name2.includes("Each") && name.includes("Box") && split[0] == split2[0]){
-                console.log([pp2, pp],4)
-                return [pp2, pp]
+                console.log([{
+                    price: pp2,
+                    sku: sku2
+                }, {
+                    price: pp,
+                    sku: sku
+                }],4)
+                return [{
+                    price: pp2,
+                    sku: sku2
+                }, {
+                    price: pp,
+                    sku: sku
+                }]
             }else if(name.includes("Each")){
-                console.log([pp,null],5)
-                return [pp,null]
+                console.log([{
+                    price: pp,
+                    sku: sku
+                },null],5)
+                return [{
+                    price: pp,
+                    sku: sku
+                },null]
             }else if(name.includes("Box")){
-                console.log([null,pp],6)
-                return [null,pp]
+                console.log([null,{
+                    price: pp,
+                    sku: sku
+                }],6)
+                return [null,{
+                    price: pp,
+                    sku: sku
+                }]
             }
 
     }catch(e){
         console.log("errrooooor defaul",`trying ${maxRetries}`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
         if(maxRetries > 0 ){
         return await defaultSite(code, maxRetries -1)
       }
@@ -126,6 +185,7 @@ const defaultSite = async (code,maxRetries = 3) => {
 
 
 const saveToDatabase = async (data) => {
+    Global_all_count = data.length;
     for(const everyCode of data){
         try{
 
@@ -152,6 +212,7 @@ const saveToDatabase = async (data) => {
         const name = await getAllProduct(everyCode,"name");
         pp.Name = name;
 
+        Global_unit_count + 1;
 
         await pp.save();
     }
@@ -162,11 +223,21 @@ const saveToDatabase = async (data) => {
 }
 
 
+app.get('/api/loader', (req,res)=>{
+    let percent = (Global_unit_count/Global_all_count)*100
+    if(Global_unit_count == Global_all_count){
+        res.status(200).send({status:true,percent:100})
+    }else{
+        res.status(300).send({status:false,percent:percent})
+    }
+})
 
 
 app.post('/api/csv', upload.single('csv') ,async (req,res)=>{
     const mpns = []; 
     const fileName = req.file;
+    Global_all_count = 0
+    Global_unit_count = 0
 
     fs.createReadStream(`./uploads/${fileName.filename}`)
   .pipe(parse({}))
@@ -181,16 +252,16 @@ app.post('/api/csv', upload.single('csv') ,async (req,res)=>{
   })
   .on("error", (e) => {
     console.log(e.message);
-  });
+  }); 
 
-  fs.unlink('./uploads/${fileName.filename}')
+//   fs.unlink('./uploads/${fileName.filename}')
 })
 
 
 app.get('/api/list',async (req,res)=>{
     try{
         const list = await Product.find();
-        await Product.deleteMany({})
+        // await Product.deleteMany({})
         res.status(200).send(list)
     }catch(e){
         res.status(500).send("internal error")
@@ -198,8 +269,64 @@ app.get('/api/list',async (req,res)=>{
 });
 
 
+const findProductBySku = async (sku,price,maxRetries = 4) => {
+    try{
+        const response = await axios.get( `https://api.bigcommerce.com/stores/josrcotf/v3/catalog/products?sku=${sku}`,{
+            headers:{
+                'Content-Type': 'application/json',
+                'X-Auth-Token': 'rvut3vv3vwcrdzv2yip4idkcocdxl3'
+            }
+        });
+
+        const name = response.data.data[0].name;
+        const type = response.data.data[0].type;
+        const weight = response.data.data[0].weight;
+        const price = response.data.data[0].price;
+        const salePrice = response.data.data[0].sale_price;
+        // console.log()
+        let updateJson = {name,type,weight,price}
+
+        
+
+        return updateJson
+    }catch(e){
+        console.log("findProductBySku Error",`trying ${maxRetries}`)
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        if(maxRetries > 0 ){
+        return await findProductBySku(sku,price, maxRetries -1)
+        }
+        return null
+    }
+}
+
+app.get('/api/updateProduct/:sku', async (req,res) => {
+    const price = req.query.price;
+    const sku = req.params['sku'];
+    console.log(price,sku,"node-log")
+    const resp = await findProductBySku(sku,price)
+    if(resp === null){
+        res.status(500).send({
+            status: false,
+            data: "error finding by sku"
+        })
+    }
+    res.status(200).send({
+        status:true,
+        data:resp
+    });
+
+})
 
 
-app.listen(2202, async ()=>{
+server.listen(2202, ()=>{
     console.log('server is running on 2202')
 });
+
+
+// {
+//    name: 'Abbott Nutrition Ensure Powder 850gm Vanilla 2211160 - Each',
+//    type: 'physical',
+//    weight: 1,
+//    price: 52.99
+//  }
+// sku from Dsite -> search Sku with api -> return price + variant
