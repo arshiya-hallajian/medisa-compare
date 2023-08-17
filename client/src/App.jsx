@@ -49,7 +49,7 @@ function App() {
           });
 
         // console.log(res.data)
-        const socket = io(`${import.meta.env.VITE_API}`)
+        const socket = io(`${import.meta.env.VITE_API2}`)
 
         const mpn = res.data;
         const total = mpn.length;
@@ -60,7 +60,7 @@ function App() {
 
         socket.on('loader', (loadData) =>{
           console.log("loader lunched",loadData.count,"/",total)
-          const percent = (loadData.count / total)*100
+          const percent = Math.round((loadData.count / total)*100)
           setLoader(percent)
           // setData()
           if(loadData.count == total){
@@ -184,13 +184,14 @@ function App() {
     }
     {/* <ClickOut  show={isConfirm.isOpen} onClickOutside={() => setIsConfirm({isOpen:false,single:false,index:null})} />
     </div> */}
-    <div className={`${isConfirm.isOpen && "blur-sm"} flex flex-col items-center gap-2 pt-10`}>
+    <p className="fixed left-1/2 bottom-0 -translate-x-1/2 -translate-y-1/2 text-slate-400 shadow-md shadow-purple-800/40">This Program Made With ❤️ By Arshiya</p>
+    <div className={`${isConfirm.isOpen && "blur-sm"} h-screen w-[260%] md:w-full overflow-x-auto flex flex-col items-center gap-2 pt-10`}>
     <ToastContainer/>
     <div className="text-white flex gap-4">
       <p>please the csv of mpn here:</p>
       <form onSubmit={onSubmitHandler} >
       <input type="file" accept=".csv" name="file" onChange={handleOnChange} />
-      <input type="submit" value="start searching" className="bg-orange-500 rounded-lg py-2 px-5 text-white mb-20"/>
+      <input type="submit" value="start searching" className="bg-orange-500 hover:bg-orange-400/70 rounded-lg py-2 px-5 text-white mb-20"/>
       </form>
     </div>
 
@@ -217,14 +218,14 @@ function App() {
           let color
 
           
-          if((code.Cprice[0] && code.Cprice[0] < code.Dprice[0].price) | (code.Dprice[1] && code.Cprice[1] < code.Dprice[1].price)){
+          if((code.Dprice[0] && code.Cprice[0] < code.Dprice[0].price) | (code.Dprice[1] && code.Cprice[1] < code.Dprice[1].price)){
             color = "bg-red-700"
           }else{
             color = "bg-green-700"
           }
  
-          let singlePrice = code.Cprice[0] - 1/100;
-          let boxPrice = code.Cprice[1] - 2/100;
+          let singlePrice = (code.Cprice[0] - 1/100).toFixed(2);
+          let boxPrice = (code.Cprice[1] - 2/100).toFixed(2);
           
           return(
           <tr className={color} key={index}>
