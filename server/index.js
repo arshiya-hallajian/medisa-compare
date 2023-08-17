@@ -7,14 +7,10 @@ const cors = require("cors");
 const fs = require("fs");
 const {parse} = require("csv-parse");
 const Product = require("./models/Data");
-const mongoose = require("mongoose");
 const http = require('http');
-const socketIo = require('socket.io');
+const {Server} = require('socket.io');
+const mongoose = require("mongoose");
 require('dotenv').config();
-
-
-let Global_all_count = null
-let Global_unit_count = null
 
 
 const storage = multer.diskStorage({
@@ -29,7 +25,11 @@ let upload = multer({ dest: 'uploads/' })
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server)
+const io = new Server(server,{
+    cors:{
+        origin: `${process.env.ORIGIN}`
+    }
+})
 
 app.use(cors());
 
@@ -41,12 +41,20 @@ mongoose.connect(process.env.MONGODB_URL).then(()=>{
 
 
 
+io.on('connection',(Socket) =>{
+    Socket.on('mpns',(mpnsData)=>{
+        const mpns = mpnsData.array
+        console.log(mpnsData.array)
+        saveToDatabase(mpns)
+    })
+    Socket.on('disconnect',()=>{
+        console.log("socket disconected")
+    })
 
 
 // const ComPrice = []
-const getAllProduct = async (code,style,maxRetries = 4) => {
+const getAllProduct = async (code,style,maxRetries = 0) => {
     try{
-        
             const url = `${process.env.COMP_URL}/catalogsearch/result/?q=${code}`
             const res = await axios.get(url);
             const $ = cheerio.load(res.data);
@@ -66,7 +74,7 @@ const getAllProduct = async (code,style,maxRetries = 4) => {
                 return name;
             }
         }catch(e){
-        console.log("errrooooor defaul",`trying ${maxRetries}`);
+        console.log(`${code} error compare`,`trying ${maxRetries}`);
         await new Promise(resolve => setTimeout(resolve, 5000));
         if(maxRetries > 0 ){
         return await getAllProduct(code,style, maxRetries -1)
@@ -76,7 +84,7 @@ const getAllProduct = async (code,style,maxRetries = 4) => {
 
 
 
-const defaultSite = async (code,maxRetries = 4) => {
+const defaultSite = async (code,maxRetries = 0) => {
 
     try{
             const DefaulUrl = `${process.env.MAIN_URL}/search.php?search_query=${code}&section=product`
@@ -173,7 +181,7 @@ const defaultSite = async (code,maxRetries = 4) => {
             }
 
     }catch(e){
-        console.log("errrooooor defaul",`trying ${maxRetries}`);
+        console.log(`${code} error defaul`,`trying ${maxRetries}`);
         await new Promise(resolve => setTimeout(resolve, 3000));
         if(maxRetries > 0 ){
         return await defaultSite(code, maxRetries -1)
@@ -185,88 +193,81 @@ const defaultSite = async (code,maxRetries = 4) => {
 
 
 const saveToDatabase = async (data) => {
-    Global_all_count = data.length;
-    for(const everyCode of data){
-        try{
+    let counter = 0
+    try{
+        for(const everyCode of data){
 
-        const Pexist = await Product.findOne({mpn: everyCode});
+            const Pexist = await Product.findOne({mpn: everyCode});
 
-        if(Pexist){
-            Pexist.Dprice = await defaultSite(everyCode);
-            Pexist.Cprice = await getAllProduct(everyCode,"price");
-            Pexist.Name = await getAllProduct(everyCode,"name");
-            await Pexist.save();
-        }else{
+            if(Pexist){
+                Pexist.Dprice = await defaultSite(everyCode);
+                Pexist.Cprice = await getAllProduct(everyCode,"price");
+                Pexist.Name = await getAllProduct(everyCode,"name");
+                counter = counter + 1;
+                Socket.emit('loader',{count:counter})
+                await Pexist.save();
+            }else{
 
-        const pp = new Product({
-            mpn: everyCode
-        });
+            const pp = new Product({
+                mpn: everyCode
+            });
 
-        const price1 = await defaultSite(everyCode);
-        pp.Dprice = price1;
+            const price1 = await defaultSite(everyCode);
+            pp.Dprice = price1;
 
 
-        const price2 = await getAllProduct(everyCode,"price");
-        pp.Cprice = price2;
+            const price2 = await getAllProduct(everyCode,"price");
+            pp.Cprice = price2;
 
-        const name = await getAllProduct(everyCode,"name");
-        pp.Name = name;
+            const name = await getAllProduct(everyCode,"name");
+            pp.Name = name;
 
-        Global_unit_count + 1;
-
-        await pp.save();
+            
+            counter = counter+1
+            Socket.emit('loader',{count:counter})
+            await pp.save();
+            }
+        }
+        const list = await Product.find();
+        await Product.deleteMany({})
+        Socket.emit('data',{data:list})
+    
+    }catch(e){
+        console.log("save err")
     }
-}catch(e){
-    console.log("save err")
 }
-    }
-}
 
-
-app.get('/api/loader', (req,res)=>{
-    let percent = (Global_unit_count/Global_all_count)*100
-    if(Global_unit_count == Global_all_count){
-        res.status(200).send({status:true,percent:100})
-    }else{
-        res.status(300).send({status:false,percent:percent})
-    }
 })
 
 
 app.post('/api/csv', upload.single('csv') ,async (req,res)=>{
     const mpns = []; 
     const fileName = req.file;
-    Global_all_count = 0
-    Global_unit_count = 0
 
-    fs.createReadStream(`./uploads/${fileName.filename}`)
+ fs.createReadStream(`./uploads/${fileName.filename}`)
   .pipe(parse({}))
   .on("data", async (row) => {
       mpns.push(row[0])
   })
   .on("end", async () => {
     console.log("finished");
-    saveToDatabase(mpns)
-        .then(() => res.send('Data saved to the database.'))
-        .catch((err) => res.status(500).send('Error saving data to the database.'));
-  })
-  .on("error", (e) => {
+    res.status(200).send(mpns)
+    fs.unlink(`./uploads/${fileName.filename}`,(err) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        console.log('File deleted successfully');
+      });
+})
+.on("error", (e) => {
     console.log(e.message);
-  }); 
+}); 
 
-//   fs.unlink('./uploads/${fileName.filename}')
+
+  
 })
 
-
-app.get('/api/list',async (req,res)=>{
-    try{
-        const list = await Product.find();
-        // await Product.deleteMany({})
-        res.status(200).send(list)
-    }catch(e){
-        res.status(500).send("internal error")
-    }
-});
 
 
 const findProductBySku = async (sku,price,maxRetries = 4) => {

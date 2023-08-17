@@ -2,7 +2,8 @@ import axios from "axios";
 import { useState } from "react";
 import {toast,ToastContainer} from "react-toastify"
 import Confirm from "./components/Confirm"
-import {ClickOut} from "./components/ClickOut"
+// import {ClickOut} from "./components/ClickOut"
+import {io} from 'socket.io-client'
 
 
 function App() {
@@ -14,24 +15,8 @@ function App() {
 
 
 
-  const loaderSystem = async(maxRetries=100) => {
-    try{
-      const load = await axios.get(`${import.meta.env.VITE_API}/api/loader`)
-      console.log(load)
-      setLoader(null)
-    }catch(e){
-      console.log(e,"loader")
-      await new Promise(resolve => setTimeout(resolve, 5000));
-        if(maxRetries > 0 ){
-        return await loaderSystem(maxRetries -1)
-        }
-        return null
-    }
 
-
-  }
-
-
+  
 
   const onSubmitHandler = async (e) => {
     
@@ -49,7 +34,7 @@ function App() {
       
       
       if(res.status== 200){
-        const getdata = await axios.get(`${import.meta.env.VITE_API}/api/list`);
+
         toast.update(85, { 
           render: "Done",
           type: toast.TYPE.SUCCESS,
@@ -62,7 +47,46 @@ function App() {
       progress: undefined,
       theme: "light",
           });
-        setData(getdata.data)
+
+        // console.log(res.data)
+        const socket = io(`${import.meta.env.VITE_API}`)
+
+        const mpn = res.data;
+        const total = mpn.length;
+        setLoader(1)
+        
+        
+        socket.emit('mpns',{array: res.data})
+
+        socket.on('loader', (loadData) =>{
+          console.log("loader lunched",loadData.count,"/",total)
+          const percent = (loadData.count / total)*100
+          setLoader(percent)
+          // setData()
+          if(loadData.count == total){
+            const timer = setTimeout(() => {
+              setLoader(null)
+              
+
+
+            }, 2000);
+          }
+        });
+
+        socket.on('data',(data)=>{
+
+          setData(data.data)
+          console.log(data.data)
+          
+          socket.disconnect()
+          console.log('socket disconnected')
+        })
+
+        
+
+        // const getdata = await axios.get(`${import.meta.env.VITE_API}/api/list`);
+
+        // setData(getdata.data)
       }
     
     }catch(e){
@@ -123,6 +147,18 @@ function App() {
           });
       }
     }else{
+      toast.update(80, { 
+        render: "Error Please Try again",
+        type: toast.TYPE.ERROR,
+         autoClose: 5000 ,
+         position: "bottom-right",
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "light",
+        });
       return
     }
   }
