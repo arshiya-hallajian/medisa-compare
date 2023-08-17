@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 .env
+yarn-error.log
+.yarn-integrity
 
 # Editor directories and files
 .vscode/*
