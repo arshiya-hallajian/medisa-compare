@@ -27,13 +27,15 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server,{
     cors:{
-        origin: `${process.env.ORIGIN}`
+        origin: "http://65.109.177.4:443"
     }
 })
 
 app.use(cors({
-    origin: '*',
+    origin: `http://65.109.177.4:443`,
 }));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json())
 
 
 
@@ -254,72 +256,141 @@ app.post('/api/csv', upload.single('csv') ,async (req,res)=>{
   .on("end", async () => {
     console.log("finished");
     res.status(200).send(mpns)
-    fs.unlink(`./uploads/${fileName.filename}`,(err) => {
-        if (err) {
-          console.error(err);
-          return;
-        }
-        console.log('File deleted successfully');
-      });
+    // fs.unlink(`./uploads/${fileName.filename}`,(err) => {
+    //     if (err) {
+    //       console.error(err);
+    //       return;
+    //     }
+    //     console.log('File deleted successfully');
+    //   });
 })
 .on("error", (e) => {
     console.log(e.message);
 }); 
-
-
   
 })
 
 
-
-const findProductBySku = async (sku,price,maxRetries = 4) => {
+const updateProductById = async (updateData, maxRetries = 4) => {
+    console.log("🤯")
     try{
-        const response = await axios.get( `https://api.bigcommerce.com/stores/josrcotf/v3/catalog/products?sku=${sku}`,{
+        const response = await axios.put( `${process.env.BIG_COMMERCE_API}/products/${updateData.id}`,updateData,{
             headers:{
+                'Accept' : 'application/json',
                 'Content-Type': 'application/json',
-                'X-Auth-Token': 'rvut3vv3vwcrdzv2yip4idkcocdxl3'
+                'X-Auth-Token': `${process.env.AUTH_TOKEN}`
             }
         });
-
-        const name = response.data.data[0].name;
-        const type = response.data.data[0].type;
-        const weight = response.data.data[0].weight;
-        const price = response.data.data[0].price;
-        const salePrice = response.data.data[0].sale_price;
-        // console.log()
-        let updateJson = {name,type,weight,price}
-
         
-
-        return updateJson
+        return response
     }catch(e){
-        console.log("findProductBySku Error",`trying ${maxRetries}`)
+        console.log("updateProductById Error",`trying ${maxRetries}`)
         await new Promise(resolve => setTimeout(resolve, 3000));
         if(maxRetries > 0 ){
-        return await findProductBySku(sku,price, maxRetries -1)
+        return await updateProductById(updateData, maxRetries -1)
         }
         return null
     }
 }
+
+
+const findProductBySku = async (sku,Nprice,maxRetries = 4) => {
+    
+    try{
+        
+        const response = await axios.get( `${process.env.BIG_COMMERCE_API}/products?sku=${sku}`,{
+            headers:{
+                'Accept' : 'application/json',
+                'Content-Type': 'application/json',
+                'X-Auth-Token': `${process.env.AUTH_TOKEN}`
+            }
+        });
+        
+
+        const id = response.data.data[0].id
+        const name = response.data.data[0].name;
+        const type = response.data.data[0].type;
+        const weight = response.data.data[0].weight;
+        const salePrice = response.data.data[0].sale_price;
+        
+        let updateJson
+        if(salePrice == 0 ){
+            updateJson = {id,name,type,weight,price:Nprice}
+        }else{
+            updateJson = {id,name,type,weight,sale_price:Nprice}
+        }
+        
+        // console.log(updateJson,"injam ok")
+        
+
+        
+        const last = await updateProductById(updateJson)
+
+        return last
+    }catch(e){
+        console.log("findProductBySku Error",`trying ${maxRetries}`)
+        await new Promise(resolve => setTimeout(resolve, 6000));
+        if(maxRetries > 0 ){
+        return await findProductBySku(sku,Nprice, maxRetries -1)
+        }
+        console.log(e)
+        return null
+    }
+}
+
+app.get('/', (req,res) => {
+    res.status(200).send("test")
+})
 
 app.get('/api/updateProduct/:sku', async (req,res) => {
     const price = req.query.price;
     const sku = req.params['sku'];
     console.log(price,sku,"node-log")
     const resp = await findProductBySku(sku,price)
-    if(resp === null){
-        res.status(500).send({
+    if(resp == null){
+        return res.status(500).send({
             status: false,
             data: "error finding by sku"
         })
+    }else{
+        
+        res.status(200).json({
+            status:true,
+            data:resp.data
+        });
     }
-    res.status(200).send({
-        status:true,
-        data:resp
-    });
 
 })
 
+app.post('/api/UpdateBatchProduct', async (req,res) => {
+    const ans = []
+    try{
+        console.log(req.body)
+        for(const product of req.body){
+        const sku = product.sku;
+        const price = product.price;
+        console.log(price,sku,"node-log")
+        const resp = await findProductBySku(sku,price)
+        if(resp === null){
+            ans.push("false")
+        }else{
+            ans.push("true")
+        }
+    };
+    res.status(200).send({
+        status:true,
+        data:ans
+    });
+
+
+    }catch(e){
+        res.status(400).send({
+            status:false,
+            data:"error happend"
+        });
+    }
+    
+})
 
 server.listen(2202, ()=>{
     console.log('server is running on 2202')
