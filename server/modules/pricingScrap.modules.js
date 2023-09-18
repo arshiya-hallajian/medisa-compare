@@ -1,7 +1,7 @@
-const {Socket} = require("socket.io");
+// const {Socket} = require("socket.io");
 const axios = require("axios");
 const cheerio = require("cheerio");
-const Product = require("../models/Data");
+const Product = require("../models/pricing.model");
 // const {compSite} = require('pricingScap.modules')
 
 const compSite = async (code, style, maxRetries = 0) => {

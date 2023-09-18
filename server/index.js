@@ -5,7 +5,7 @@ const cors = require("cors");
 const http = require('http');
 const {Server} = require('socket.io');
 const mongoose = require("mongoose");
-const {saveToDatabase} = require("./modules/pricingScrap.modules");
+
 require('dotenv').config();
 
 
@@ -14,16 +14,19 @@ const server = http.createServer(app);
 const io = new Server(server,{
     cors:{
         // origin: "http://65.109.177.4:443"
-        origin: "http://localhost:5174"
+        // origin: "http://localhost:5174"
+        origin: "*"
     }
 })
 
 app.use(cors({
     // origin: `http://65.109.177.4:443`,
-    origin: `http://localhost:5174`,
+    // origin: `http://localhost:5174`,
+    origin: `*`,
 }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json())
+app.set('socketIo',io)
 
 //import routers
 const pricing_route = require('./routes/pricing.route')
@@ -36,11 +39,9 @@ mongoose.connect(process.env.MONGODB_URL).then(()=>{
 
 
 io.on('connection',(Socket) =>{
-    Socket.on('mpns',async(mpnsData)=>{
-        const mpns = mpnsData.array
-        console.log(mpnsData.array)
-        await saveToDatabase(mpns,Socket)
-    })
+
+
+    console.log("socket connected")
     Socket.on('disconnect',()=>{
         console.log("socket disconnected")
     })

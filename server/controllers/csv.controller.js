@@ -1,9 +1,21 @@
 
 const fs = require("fs");
 const {parse} = require("csv-parse");
+const {saveToDatabase} = require("../modules/pricingScrap.modules");
+
+
 
 
 module.exports.csvController = async (req,res)=>{
+    let io = req.app.get('socketIo')
+
+    io.on('mpns',async(mpnsData)=>{
+        const mpns = mpnsData.array
+        console.log(mpnsData.array)
+        await saveToDatabase(mpns,io)
+    })
+
+
     const mpns = [];
     const fileName = req.file;
 

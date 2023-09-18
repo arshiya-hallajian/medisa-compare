@@ -7,13 +7,14 @@ export const DropDown = (props) => {
                 {/* eslint-disable-next-line react/prop-types */}
                 {props.submenu.map((item, index) => {
                     return (
-                        <li key={index}
+                        // eslint-disable-next-line react/prop-types
+                        <li key={index} onClick={()=>props.click(item.link)}
                             className="text-sm block transition hover:bg-blue-500 hover:text-white py-1 pl-2 rounded my-2">
-                            <h1>{item}</h1>
+                            <h1>{item.name}</h1>
                             {/* eslint-disable-next-line react/prop-types */}
                             {props.loading ? <p className="block flex justify-center mt-2">
                                 <CircleLoader size={20} color={"#4a8cf1"} />
-                            </p> : <p className="text-xs text-center text-slate-400">number:<pan className="text-red-300"> 10</pan></p>
+                            </p> : <p className="text-xs text-center text-slate-400">number:<span className="text-red-300"> {item.number}</span></p>
                             }
 
 
@@ -24,7 +25,8 @@ export const DropDown = (props) => {
                 {/* eslint-disable-next-line react/prop-types */}
                 {props.loading ? <p className="block flex justify-center mt-2">
                     <CircleLoader size={20} color={"#4a8cf1"} />
-                </p> : <p className="text-slate-400 text-center mt-2">total:<span className="text-red-300">60</span></p>
+                    {/* eslint-disable-next-line react/prop-types */}
+                </p> : <p className="text-slate-400 text-center mt-2">total:<span className="text-red-300">{props.total}</span></p>
                 }
 
             </ul>

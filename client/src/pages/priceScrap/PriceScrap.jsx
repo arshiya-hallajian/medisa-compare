@@ -79,6 +79,7 @@ const PriceScrap = () => {
             }
 
         }catch(e){
+
             console.log(e)
             toast.update(85, {
                 render: "Error Please Try again",

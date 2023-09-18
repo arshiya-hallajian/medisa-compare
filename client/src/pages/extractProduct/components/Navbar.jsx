@@ -2,98 +2,96 @@ import {DropDown} from "./DropDown.jsx";
 import {useEffect, useState} from "react";
 import axios from 'axios'
 
-const navigationData = [
-    {
-        name: "Continence Aids",
-        submenu: [
-            'Bedding, Chair & Floor Protection',
-            'Bowel Care',
-            'Children\'s Nappies & Accessories',
-            'Disposable Pads, Pants & Liners',
-            'Swimwear',
-            'Washable Products',
-        ]
-    },
-    {
-        name: 'Daily Living & Mobility Aids',
-        submenu: [
-            'Clothing & Dressing Aids',
-            'Eating, Drinking & Meal Preparation',
-            'Household Aids',
-            'Household Products',
-            'Pressure Sore Prevention & Care',
-            'Rehabilitation & Training',
-            'Walking & Mobility Aids'
-        ]
-    },
-    {
-        name: 'Medical Aids',
-        submenu: [
-            'Enteral Feeding',
-            'First Aid',
-            'General',
-            'Needles, Syringes & Solutions',
-            'Respiratory (Breathing) Aids',
-            'Tracheotomy (Opening into the throat) Aids'
-        ]
-    },
-    {
-        name: 'Nutrition',
-        submenu: [
-            'Supplements',
-            'Vitamins'
-        ]
-    },
-    {
-        name: 'Skin Care',
-        submenu: [
-            'Adhesive & Adhesive Removers',
-            'Creams, Body Lotions, Gels & Oils',
-            'Wipes & Wash Cloths'
-        ]
-    },
-    {
-        name: 'Urology',
-        submenu: [
-            'Catheters',
-            'Condom Drainage / External Catheters',
-            'Drain and Leg Bags',
-            'Urinals & Bed Pans',
-            'Urostomy, Ostomy & Cecostomy Products'
-        ]
-    },
-    {
-        name: 'Other',
-        submenu: [
-            'Clothing & Eye Protection',
-            'Disinfectants & Cleaners',
-            'Personal Grooming & Hygiene'
-        ]
-    }
-]
+// const navigationData = [
+//     {
+//         name: "Continence Aids",
+//         submenu: [
+//             'Bedding, Chair & Floor Protection',
+//             'Bowel Care',
+//             'Children\'s Nappies & Accessories',
+//             'Disposable Pads, Pants & Liners',
+//             'Swimwear',
+//             'Washable Products',
+//         ]
+//     },
+//     {
+//         name: 'Daily Living & Mobility Aids',
+//         submenu: [
+//             'Clothing & Dressing Aids',
+//             'Eating, Drinking & Meal Preparation',
+//             'Household Aids',
+//             'Household Products',
+//             'Pressure Sore Prevention & Care',
+//             'Rehabilitation & Training',
+//             'Walking & Mobility Aids'
+//         ]
+//     },
+//     {
+//         name: 'Medical Aids',
+//         submenu: [
+//             'Enteral Feeding',
+//             'First Aid',
+//             'General',
+//             'Needles, Syringes & Solutions',
+//             'Respiratory (Breathing) Aids',
+//             'Tracheotomy (Opening into the throat) Aids'
+//         ]
+//     },
+//     {
+//         name: 'Nutrition',
+//         submenu: [
+//             'Supplements',
+//             'Vitamins'
+//         ]
+//     },
+//     {
+//         name: 'Skin Care',
+//         submenu: [
+//             'Adhesive & Adhesive Removers',
+//             'Creams, Body Lotions, Gels & Oils',
+//             'Wipes & Wash Cloths'
+//         ]
+//     },
+//     {
+//         name: 'Urology',
+//         submenu: [
+//             'Catheters',
+//             'Condom Drainage / External Catheters',
+//             'Drain and Leg Bags',
+//             'Urinals & Bed Pans',
+//             'Urostomy, Ostomy & Cecostomy Products'
+//         ]
+//     },
+//     {
+//         name: 'Other',
+//         submenu: [
+//             'Clothing & Eye Protection',
+//             'Disinfectants & Cleaners',
+//             'Personal Grooming & Hygiene'
+//         ]
+//     }
+// ]
 
-export const Navbar = () => {
+export const Navbar = ({click}) => {
     const [navbarData, setNavbarData] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         // setIsLoading(true)
-
-        const fetch = () => {
+        const fetch = async () => {
             try {
-                return axios.get(`${import.meta.env.VITE_API}/api/extract/getData`)
+                const res = await axios.get(`${import.meta.env.VITE_API}/api/extract/`);
+                setNavbarData(res.data.navbar)
             } catch (e) {
                 console.log(e, "Error getting data");
-
             }
         }
-        const res = fetch()
-        setNavbarData(res)
-        return () => {
+        fetch()
 
-        };
+
     }, []);
+
 
     return (
         <header className="flex flex-col md:flex-row justify-center items-center md:h-32">
@@ -103,11 +101,11 @@ export const Navbar = () => {
                 <path strokeLinecap="round" strokeLinejoin="round"
                       d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
             </svg>
-            <nav
-                className={`${isOpen ? "block" : "hidden"} transition md:block md:flex justify-around gap-5 text-blue-400 font-medium`}>
+            <nav className={`${isOpen ? "block" : "hidden"} transition md:block md:flex justify-around gap-5 text-blue-400 font-medium`}>
 
                 {
-                    navigationData.map((each) => {
+                    navbarData &&
+                    navbarData.map((each) => {
                         return (
                             <ul key={each.name}>
                                 <li className="flex justify-center items-center gap-1 group py-4">
@@ -122,7 +120,7 @@ export const Navbar = () => {
                                     <p>
                                         {each.name}
                                     </p>
-                                    <DropDown submenu={each.submenu} loading={isLoading}/>
+                                    <DropDown submenu={each.submenu} loading={isLoading} click={click} total={each.total}/>
                                 </li>
                             </ul>
 
