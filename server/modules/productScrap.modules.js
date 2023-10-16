@@ -1,21 +1,136 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
-const checkMedisa = async(sku) => {
-    try {
-        const response = await axios.get( `${process.env.BIG_COMMERCE_API}/products?sku=${sku}`,{
+const findVariantById = async(id, mpn) => {
+    try{
+        const res = await axios.get(`https://api.bigcommerce.com/stores/josrcotf/v3/catalog/products/${id}/variants`,{
             headers:{
                 'Accept' : 'application/json',
                 'Content-Type': 'application/json',
-                'X-Auth-Token': `${process.env.AUTH_TOKEN}`
+                'X-Auth-Token': `lcn4g7e2mdda2bvibf6aak3ga40r2uz`
             }
-        });
+        })
+        const result = res.data.data
 
-        return response.data.meta.pagination.count
-    }catch (e) {
-        console.log('check medisa F error')
+        const data = []
+        for(let x of result){
+            const extractMPn = x.sku.split('_')
+            if(extractMPn[1] === mpn){
+                data.push(x)
+            }
+        }
+        return data
+    }catch(e){
+        console.log(e, 'findvariantbyid func error')
     }
 }
+
+const medisaSearchByMpn = async(mpn,firstname) => {
+    try{
+        console.log(mpn)
+        const res = await axios.get(`https://api.bigcommerce.com/stores/josrcotf/v3/catalog/products?keyword=${mpn}`,{
+            headers:{
+                'Accept' : 'application/json',
+                'Content-Type': 'application/json',
+                'X-Auth-Token': `lcn4g7e2mdda2bvibf6aak3ga40r2uz`
+            }
+        })
+
+        let data = []
+        let tmp = {}
+        const result = res.data.data
+
+        if(result.length === 0){
+            console.log('not exist')
+            return null
+        }else if(result.length > 0){
+            console.log('found ', result.length)
+            console.log('found ', firstname)
+            for(let x of result){
+                if(x['name'].includes(firstname)) {
+                    if (x['option_set_id'] == null) {
+                        // console.log("type null")
+                        tmp = {
+                            type: 'normal',
+                            id: x['id'],
+                            name: x['name'],
+                            mpn: mpn,
+                            sku: x['sku'],
+                            prices: [{label: 'price', price: x['price']}, {
+                                label: 'cost_price',
+                                price: x['cost_price']
+                            }, {label: 'sale_price', price: x['sale_price']}, {
+                                label: 'calc_price',
+                                price: x['calculated_price']
+                            }],
+                        }
+                        data.push(tmp)
+                    } else {
+                        // console.log('type variant')
+                        const vari = await findVariantById(x['id'], mpn)
+
+                        let price = []
+                        for (let y of vari) {
+                            const option = y['option_values']
+                            // console.log(option)
+                            // console.log(option.length)
+                            if (option.length > 1) {
+                                if (option[2] !== undefined) {
+                                    price.push({
+                                        label: [option[0]['label'], option[1]['label'], option[2]['label']],
+                                        price: [{label: 'price', price: y['price']}, {
+                                            label: 'cost_price',
+                                            price: y['cost_price']
+                                        }, {label: 'sale_price', price: y['sale_price']}, {
+                                            label: 'calc_price',
+                                            price: y['calculated_price']
+                                        }]
+                                    })
+                                } else {
+                                    price.push({
+                                        label: [option[0]['label'], option[1]['label']],
+                                        price: [{label: 'price', price: y['price']}, {
+                                            label: 'cost_price',
+                                            price: y['cost_price']
+                                        }, {label: 'sale_price', price: y['sale_price']}, {
+                                            label: 'calc_price',
+                                            price: y['calculated_price']
+                                        }]
+                                    })
+                                }
+                            } else {
+                                price.push({
+                                    label: [option[0]],
+                                    price: [{label: 'price', price: y['price']}, {
+                                        label: 'cost_price',
+                                        price: y['cost_price']
+                                    }, {label: 'sale_price', price: y['sale_price']}, {
+                                        label: 'calc_price',
+                                        price: y['calculated_price']
+                                    }]
+                                })
+                            }
+                        }
+                        console.log(price)
+                        tmp = {
+                            type: 'variant',
+                            id: x['id'],
+                            name: x['name'],
+                            mpn: mpn,
+                            sku: x['sku'],
+                            price: price,
+                        }
+                        data.push(tmp)
+                    }
+                }
+            }
+        }
+        return data
+    }catch(e){
+        console.log(e.message, 'medisaSearchByApi error')
+    }
+}
+
 const page_link_scrap = async(url,io) => {
     try{
         let currentPage = 1
@@ -24,7 +139,9 @@ const page_link_scrap = async(url,io) => {
 
         while(currentPage < maxPage){
 
-            const resp = await axios.get(`${url}?p=${currentPage}`,{
+            const ttt = `${url}?p=${currentPage}`
+            console.log(ttt)
+            const resp = await axios.get(ttt,{
                 maxBodyLength: Infinity,
                 timeout: 30000
             });
@@ -61,20 +178,20 @@ const page_link_scrap = async(url,io) => {
 const productScrape = async(url,io) => {
     if(url){
 
-            try{
-        const links = await page_link_scrap(url,io)
-        // console.log(links.length)
+        try{
+            const links = await page_link_scrap(url,io)
+            // console.log(links.length)
 
-        if(!links){
-            console.log('no link in function')
-            // throw new Error('no link')
-            io.emit('finished')
-            return
-        }
-        const fData = []
-        let count = 0;
+            if(!links){
+                console.log('no link in function')
+                // throw new Error('no link')
+                io.emit('finished')
+                return
+            }
+            const fData = []
+            let count = 0;
 
-        for (const product_link of links) {
+            for (const product_link of links) {
                 const resp = await axios.get(product_link);
                 const $ = cheerio.load(resp.data);
                 const main_div = $('div.column.main')
@@ -149,23 +266,28 @@ const productScrape = async(url,io) => {
                 })
 
 
+                const s_mpn = $('#maincontent > div.columns > div > div.product-info-main > div.product.attribute.overview > div').text().split(' ')
+                const mpn = s_mpn[s_mpn.length-1]
+
+
                 const title = main_div.find('h1.page-title > span').text()
                 const sku = main_div.find('div.product-info-main div.sku.product div.value').text()
                 const describtion = main_div.find('div.description.product div.value').text()
 
 
 
-                const check = await checkMedisa(sku)
+                const medisaCheck = await medisaSearchByMpn(mpn,title.split(' ')[0])
 
                 const total = {
                     name: title,
                     link: product_link,
                     specs: specs,
+                    mpn:mpn,
                     sku: sku,
                     desc: describtion,
                     stock: stock_list,
                     price: price,
-                    exist: check
+                    medisa: medisaCheck
                 }
                 console.log(count)
                 fData.push(total)
@@ -178,10 +300,10 @@ const productScrape = async(url,io) => {
                     total: links.length,
                     data: fData
                 })
-        }
-            }catch (e) {
-                console.log(e, 'error in scrap')
             }
+        }catch (e) {
+            console.log(e, 'error in scrap')
+        }
         io.emit('finished')
     }
 }
