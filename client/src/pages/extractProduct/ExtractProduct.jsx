@@ -93,7 +93,7 @@ const ExtractProduct = () => {
         }
     }
 
-    const updateWindowHandler = (data, offerPrice, ind, each = null, box = null) => {
+    const updateWindowHandler = (data, offerPrice, ind, each = null, box = null,mpn) => {
         setUpdateWindow(prev => ({
             ...prev,
             isOpen: true,
@@ -101,7 +101,8 @@ const ExtractProduct = () => {
             offer_prices: offerPrice,
             indPrice: ind,
             each: each,
-            box: box
+            box: box,
+            default_mpn: mpn
         }))
     }
     const addListHandler = (data, offerPrice) => {
@@ -159,7 +160,7 @@ const ExtractProduct = () => {
             }
 
             {
-                Data[0] &&
+                fData[0] &&
                 <div className="overflow-auto">
                     <table className="w-full border-separate border-spacing-y-2 text-slate-300">
                         <thead>
@@ -181,7 +182,7 @@ const ExtractProduct = () => {
                         </thead>
                         <tbody className="text-center">
                         {
-                            Data.map((row, index) => {
+                            fData.map((row, index) => {
                                 return (
                                     <EachProduct key={index} row={row} desc={desFunc} multiP={multiProductHandler} listHandler={addListHandler} updateW={updateWindowHandler}/>
                                 )

@@ -2,7 +2,7 @@
 import {BoxOffer, eachOffer, percent30} from "../../services/calculate_offer.js";
 
 export const MultiProduct = ({data, setData, update}) => {
-    console.log(data)
+    // console.log(data)
     const calculateOfferPrice = (showPrice, fixedPrice) => {
         if (showPrice > fixedPrice) {
             return "bg-red-600";
@@ -340,7 +340,8 @@ export const MultiProduct = ({data, setData, update}) => {
                                                     },
                                                     data.data.price,
                                                     eachVariantPrice,
-                                                    BoxVariantPrice
+                                                    BoxVariantPrice,
+                                                    data.data.mpn
                                                     )}
                                             >
                                                 update

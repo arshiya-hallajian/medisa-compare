@@ -1,10 +1,16 @@
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
+import axios from "axios";
 
 export const UpdateWindow = ({data, setData}) => {
+    const [images, setImages] = useState({
+        each:null,
+        box:null
+    });
     const {register, unregister, handleSubmit, setValue} = useForm()
     // const [product, setProduct] = useState(null);
     let s_price = data.offer_prices.Neach, indPrice = data.indPrice, B_price = data.offer_prices.Vbox
+
     useEffect(() => {
         if (data.data) {
             console.log(data)
@@ -24,7 +30,9 @@ export const UpdateWindow = ({data, setData}) => {
                     unregister('box')
                 }
             } else if (data.data.type === 'variant') {
+                setValue('D_mpn', data.default_mpn)
                 setValue('name', data.data.name)
+                setValue('id', data.data.id)
                 setValue('mpn', data.data.mpn)
                 setValue('sku', data.data.sku)
                 unregister('price')
@@ -32,24 +40,53 @@ export const UpdateWindow = ({data, setData}) => {
                 unregister('cost_price')
                 unregister('sale_price')
                 setValue('type', 'variant')
+
                 setValue('each.price', data.data.price[0].price[0].price)
                 setValue('each.cost_price', data.data.price[0].price[1].price)
                 setValue('each.sale_price', data.data.price[0].price[2].price)
                 setValue('each.calc_price', data.data.price[0].price[3].price)
+                setValue('each.sku', data.data.price[0].sku)
+                if (data.data.price[0].image !== '') {
+
+                    setImages(prev => ({
+                        ...prev,
+                        each: data.data.price[0].image
+                    }))
+                }
                 if (data.data.price[1]) {
+                    if (data.data.price[1].image !== '') {
+
+                        setImages(prev => ({
+                            ...prev,
+                            box: data.data.price[1].image
+                        }))
+                    }
                     setValue('box.price', data.data.price[1].price[0].price)
                     setValue('box.cost_price', data.data.price[1].price[1].price)
                     setValue('box.sale_price', data.data.price[1].price[2].price)
                     setValue('box.calc_price', data.data.price[1].price[3].price)
-                }else{
-                    unregister('box')
+                    setValue('box.sku', data.data.price[1].sku)
+                } else {
+                    setValue('box', null)
                 }
             }
         }
-    }, [data, setValue,unregister]);
+    }, [data, setValue, unregister]);
 
-    const onSubmit = (d) => {
+
+
+
+    const onSubmit = async(d) => {
         console.log(d)
+        try{
+            const res = await axios.post(`${import.meta.env.VITE_API2}/api/extract/update`,d)
+            // if(res.status === 200){
+            //     setData(prev => ({...prev, isOpen: false, data: null}))
+            // }
+            console.log(res.data)
+        }catch (e) {
+            console.log(e)
+        }
     }
 
 
@@ -146,10 +183,17 @@ export const UpdateWindow = ({data, setData}) => {
                             <hr/>
                             <br/>
                             <p className="text-center mb-3"> Each</p>
+                            <div className="flex justify-center items-center mb-5">
+                                {
+                                    images.each &&
+                                    <img className="w:full md:w-1/4" src={images.each} alt="img"/>
+                                }
+                            </div>
                             <div className="flex flex-col md:flex-row gap-4">
                                 <label className="text-lg text-center md:text-left md:w-24">price: </label>
                                 <input {...register("each.price")}
                                        placeholder="please enter product price"
+                                       defaultValue={null}
                                        className="rounded-md py-1 w-full text-black text-center"/>
                                 <div
                                     className="text-sm md:absolute flex justify-center items-center md:left-10 md:bottom-5"
@@ -166,18 +210,27 @@ export const UpdateWindow = ({data, setData}) => {
                                 <label className="text-lg text-center md:text-left md:w-24">cost_price: </label>
                                 <input {...register("each.cost_price")}
                                        placeholder="please enter product cost_price"
+                                       defaultValue={null}
                                        className="rounded-md py-1 w-full text-black text-center"/>
                             </div>
                             <div className="flex flex-col md:flex-row gap-4">
                                 <label className="text-lg text-center md:text-left md:w-24">sale_price: </label>
                                 <input {...register("each.sale_price")}
                                        placeholder="please enter product sale_price"
+                                       defaultValue={null}
                                        className="rounded-md py-1 w-full text-black text-center"/>
                             </div>
                             <div className="flex flex-col md:flex-row gap-4">
                                 <label className="text-lg text-center md:text-left md:w-24">calc_price: </label>
                                 <input {...register("each.calc_price")}
                                        placeholder="please enter product calc_price"
+                                       defaultValue={null}
+                                       className="rounded-md py-1 w-full text-black text-center"/>
+                            </div>
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <label className="text-lg text-center md:text-left md:w-24">sku: </label>
+                                <input {...register("each.sku")}
+                                       placeholder="please enter product sku"
                                        className="rounded-md py-1 w-full text-black text-center"/>
                             </div>
                         </>}
@@ -187,10 +240,17 @@ export const UpdateWindow = ({data, setData}) => {
                                 <hr/>
                                 <br/>
                                 <p className="text-center mb-3"> Box</p>
+                                <div className="flex justify-center items-center mb-5">
+                                    {
+                                        images.box &&
+                                        <img className="w:full md:w-1/4" src={images.box} alt="img"/>
+                                    }
+                                </div>
                                 <div className="flex flex-col md:flex-row gap-4">
                                     <label className="text-lg text-center md:text-left md:w-24">price: </label>
                                     <input {...register("box.price")}
                                            placeholder="please enter product price"
+                                           defaultValue={null}
                                            className="rounded-md py-1 w-full text-black text-center"/>
                                     <div
                                         className="text-sm md:absolute flex justify-center items-center md:left-10 md:bottom-5"
@@ -206,18 +266,27 @@ export const UpdateWindow = ({data, setData}) => {
                                     <label className="text-lg text-center md:text-left md:w-24">cost_price: </label>
                                     <input {...register("box.cost_price")}
                                            placeholder="please enter product cost_price"
+                                           defaultValue={null}
                                            className="rounded-md py-1 w-full text-black text-center"/>
                                 </div>
                                 <div className="flex flex-col md:flex-row gap-4">
                                     <label className="text-lg text-center md:text-left md:w-24">sale_price: </label>
                                     <input {...register("box.sale_price")}
                                            placeholder="please enter product sale_price"
+                                           defaultValue={null}
                                            className="rounded-md py-1 w-full text-black text-center"/>
                                 </div>
                                 <div className="flex flex-col md:flex-row gap-4">
                                     <label className="text-lg text-center md:text-left md:w-24">calc_price: </label>
                                     <input {...register("box.calc_price")}
                                            placeholder="please enter product calc_price"
+                                           defaultValue={null}
+                                           className="rounded-md py-1 w-full text-black text-center"/>
+                                </div>
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <label className="text-lg text-center md:text-left md:w-24">sku: </label>
+                                    <input {...register("box.sku")}
+                                           placeholder="please enter product sku"
                                            className="rounded-md py-1 w-full text-black text-center"/>
                                 </div>
                             </>}

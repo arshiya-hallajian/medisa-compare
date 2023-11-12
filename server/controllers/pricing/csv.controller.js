@@ -1,7 +1,7 @@
 
 const fs = require("fs");
 const {parse} = require("csv-parse");
-const {saveToDatabase} = require("../modules/pricingScrap.modules");
+const {saveToDatabase} = require("../../modules/pricingScrap.modules");
 
 
 

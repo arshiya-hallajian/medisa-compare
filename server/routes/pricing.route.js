@@ -1,6 +1,6 @@
 const express = require('express')
-const {updateBatchProductController, updateProductController} = require("../controllers/update.controller");
-const {csvController} = require("../controllers/csv.controller");
+const {updateBatchProductController, updateProductController} = require("../controllers/pricing/update.controller");
+const {csvController} = require("../controllers/pricing/csv.controller");
 const multer = require("multer");
 const router = express.Router()
 

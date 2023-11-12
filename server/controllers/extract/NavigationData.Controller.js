@@ -1,5 +1,5 @@
-const navbarModel = require('../models/navbar.model')
-const navbar_main_number = require('../modules/navScrap.modules')
+const navbarModel = require('../../models/navbar.model')
+const navbar_main_number = require('../../modules/navScrap.modules')
 const axios = require('axios')
 const cheerio = require('cheerio');
 

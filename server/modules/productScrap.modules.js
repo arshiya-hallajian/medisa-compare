@@ -3,11 +3,11 @@ const cheerio = require("cheerio");
 
 const findVariantById = async(id, mpn) => {
     try{
-        const res = await axios.get(`https://api.bigcommerce.com/stores/josrcotf/v3/catalog/products/${id}/variants`,{
+        const res = await axios.get(`${process.env.BIG_COMMERCE_API}/products/${id}/variants`,{
             headers:{
                 'Accept' : 'application/json',
                 'Content-Type': 'application/json',
-                'X-Auth-Token': `lcn4g7e2mdda2bvibf6aak3ga40r2uz`
+                'X-Auth-Token': `${process.env.AUTH_TOKEN}`
             }
         })
         const result = res.data.data
@@ -21,26 +21,30 @@ const findVariantById = async(id, mpn) => {
         }
         return data
     }catch(e){
-        console.log(e, 'findvariantbyid func error')
+        console.log(e, 'find variant by id func error')
     }
 }
 
+
 const medisaSearchByMpn = async(mpn,firstname) => {
     try{
-        console.log(mpn)
-        const res = await axios.get(`https://api.bigcommerce.com/stores/josrcotf/v3/catalog/products?keyword=${mpn}`,{
+        // console.log(mpn)
+        const res = await axios.get(`${process.env.BIG_COMMERCE_API}/products?keyword=${mpn}`,{
             headers:{
                 'Accept' : 'application/json',
                 'Content-Type': 'application/json',
-                'X-Auth-Token': `lcn4g7e2mdda2bvibf6aak3ga40r2uz`
+                'X-Auth-Token': `${process.env.AUTH_TOKEN}`
             }
         })
+        
 
         let data = []
         let tmp = {}
         const result = res.data.data
 
-        if(result.length === 0){
+        console.log('length',result.length)
+
+        if(result.length === 0 && result.length > 5){
             console.log('not exist')
             return null
         }else if(result.length > 0){
@@ -77,6 +81,8 @@ const medisaSearchByMpn = async(mpn,firstname) => {
                             if (option.length > 1) {
                                 if (option[2] !== undefined) {
                                     price.push({
+                                        image: y['image_url'],
+                                        sku: y['sku'],
                                         label: [option[0]['label'], option[1]['label'], option[2]['label']],
                                         price: [{label: 'price', price: y['price']}, {
                                             label: 'cost_price',
@@ -88,6 +94,8 @@ const medisaSearchByMpn = async(mpn,firstname) => {
                                     })
                                 } else {
                                     price.push({
+                                        image: y['image_url'],
+                                        sku: y['sku'],
                                         label: [option[0]['label'], option[1]['label']],
                                         price: [{label: 'price', price: y['price']}, {
                                             label: 'cost_price',
@@ -100,6 +108,8 @@ const medisaSearchByMpn = async(mpn,firstname) => {
                                 }
                             } else {
                                 price.push({
+                                    image: y['image_url'],
+                                    sku: y['sku'],
                                     label: [option[0]],
                                     price: [{label: 'price', price: y['price']}, {
                                         label: 'cost_price',
@@ -199,7 +209,7 @@ const productScrape = async(url,io) => {
                 count += 1
                 //scrap price
                 const price_form = main_div.find('div.product-add-form form')
-                price=[]
+                let price=[]
                 price_form.each((i,elm)=>{
                     const P_title = $(elm).find('div.packet-title > strong').text().trim()
                     const P_quantity = $(elm).find('div.packet-title > div').text().trim()
@@ -309,4 +319,4 @@ const productScrape = async(url,io) => {
 }
 
 
-module.exports = {productScrape}
+module.exports = {productScrape,findVariantById}

@@ -1,5 +1,5 @@
 
-const {findProductBySku} = require("../modules/pricing.modules")
+const {findProductBySku} = require("../../modules/pricing.modules")
 
 
 module.exports.updateProductController = async (req,res) => {
