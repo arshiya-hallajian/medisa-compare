@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import PriceScrap from "./pages/priceScrap/PriceScrap.jsx";
 import ExtractProduct from "./pages/extractProduct/ExtractProduct.jsx";
+import {Search} from "./pages/search/Search.jsx";
 import('preline')
 
 const router = createBrowserRouter([
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
     {
         path: '/extractProduct',
         element: <ExtractProduct/>
+    },
+    {
+        path: '/searchProduct',
+        element: <Search/>
     }
 ])
 
