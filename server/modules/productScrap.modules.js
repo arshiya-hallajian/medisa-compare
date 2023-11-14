@@ -1,7 +1,7 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
-const findVariantById = async(id, mpn) => {
+const findVariantById = async(id, mpn,maxRetries=3) => {
     try{
         const res = await axios.get(`${process.env.BIG_COMMERCE_API}/products/${id}/variants`,{
             headers:{
@@ -22,6 +22,11 @@ const findVariantById = async(id, mpn) => {
         return data
     }catch(e){
         console.log(e, 'find variant by id func error')
+        await new Promise(resolve => setTimeout(resolve,3000))
+        if (maxRetries > 0) {
+            return await findVariantById(id, mpn, maxRetries - 1)
+        }
+        return null
     }
 }
 

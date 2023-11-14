@@ -1,5 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
+const {MedisaApi_GetAllDataFromProduct} = require("../modules/search.Api.modules");
 
 
 const All_pages_link_scrap = async (search, io) => {
@@ -21,14 +22,14 @@ const All_pages_link_scrap = async (search, io) => {
                 status: "link",
                 page: currentPage
             })
+
             const $ = cheerio.load(resp.data);
 
-
             // scrap all products link of one page
-            const product_link = $('#maincontent > div.columns > div.column.main > div.products.wrapper.grid.products-grid > ol > li');
+            const product_link = $('div.products.wrapper.grid.products-grid > ol > li');
             product_link.each((index, elm) => {
-                let product_link = $(elm).find('.product-item-name > .product-item-link').attr('href');
-                link_array.push(product_link)
+                let products_link = $(elm).find('.product-item-name > .product-item-link').attr('href');
+                link_array.push(products_link)
             })
 
             const next_btn = $('a.next.action')
@@ -46,15 +47,15 @@ const All_pages_link_scrap = async (search, io) => {
     }
 }
 
-const one_page = async (url,maxRetries= 3) => {
+const one_page = async (url, maxRetries = 3) => {
     try {
         const res = await axios.get(url)
         return cheerio.load(res.data);
     } catch (e) {
-        console.log("one_page function Error",`trying ${maxRetries}`)
+        console.log("one_page function Error", `trying ${maxRetries}`)
         await new Promise(resolve => setTimeout(resolve, 3000));
-        if(maxRetries > 0 ){
-            return await one_page(url, maxRetries -1)
+        if (maxRetries > 0) {
+            return await one_page(url, maxRetries - 1)
         }
         return null
     }
@@ -63,11 +64,13 @@ const one_page = async (url,maxRetries= 3) => {
 
 module.exports.searchController = async (req, res) => {
 
-    const search = req.params.search
+    const search = req.query.search
     const io = req.app.get('socketIo')
 
+    console.log(search)
     if (search) {
         try {
+            // console.log('here')
             const all_links = await All_pages_link_scrap(search, io)
             if (!all_links) {
                 console.log('no link in function')
@@ -77,6 +80,7 @@ module.exports.searchController = async (req, res) => {
             const fData = []
             let count = 0;
 
+            console.log(all_links)
             for (const link of all_links) {
                 const $ = await one_page(link)
                 const main_div = $('div.column.main')
@@ -95,7 +99,7 @@ module.exports.searchController = async (req, res) => {
                 const description = main_div.find('div.description.product div.value').text()
 
 
-                // const medisaCheck = await medisaSearchByMpn(mpn, title.split(' ')[0])
+                const medisaCheck = await MedisaApi_GetAllDataFromProduct(mpn, title.split(' ')[0])
 
                 const total = {
                     name: title,
@@ -106,9 +110,9 @@ module.exports.searchController = async (req, res) => {
                     desc: description,
                     stock: stocks,
                     price: price,
-                    // medisa: medisaCheck
+                    medisa: medisaCheck
                 }
-                console.log(count)
+                // console.log(count)
                 fData.push(total)
 
 
@@ -119,6 +123,8 @@ module.exports.searchController = async (req, res) => {
                     data: fData
                 })
             }
+            res.status(200).send(fData)
+            console.log(fData)
         } catch (e) {
             console.log(e, 'error in ind search')
         }
