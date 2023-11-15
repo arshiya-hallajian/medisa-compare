@@ -81,7 +81,7 @@ export const Navbar = ({click}) => {
         // setIsLoading(true)
         const fetch = async () => {
             try {
-                const res = await axios.get(`${import.meta.env.VITE_API}/api/extract/`);
+                const res = await axios.get(`${import.meta.env.VITE_API2}/api/extract/`);
                 setNavbarData(res.data.navbar)
             } catch (e) {
                 console.log(e, "Error getting data");

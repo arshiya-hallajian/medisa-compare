@@ -11,9 +11,10 @@ export const SearchBox = ({click}) => {
     }
     const onSubmitHandler = (e) => {
         e.preventDefault();
-        const url = `https://store.${import.meta.env.VITE_COMP_SITE}.com/catalogsearch/result/?q=${SearchInput}`
-        console.log(url)
-        click(url)
+        // const url = `https://store.${import.meta.env.VITE_COMP_SITE}.com/catalogsearch/result/?q=${SearchInput}`
+        // console.log(url)
+        const fixedInput = SearchInput.replace(" ", "+")
+        click(fixedInput)
     }
 
 

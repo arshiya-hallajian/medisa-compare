@@ -48,7 +48,7 @@ export const Search = () => {
         try {
             const socket = await io(import.meta.env.VITE_API2)
             // const res = await axios.get(`https://rhn9zs-8080.csb.app/?url=${url}`);
-            const res = await axios.get(`${import.meta.env.VITE_API2}/api/extract/getAllProducts?url=${url}`)
+            const res = await axios.get(`${import.meta.env.VITE_API2}/api/extract/search?search=${url}`)
             console.log(res.data)
 
 
@@ -56,7 +56,7 @@ export const Search = () => {
                 console.log("connected")
             })
 
-            socket.on('extract-loader', (data) => {
+            socket.on('search-loader', (data) => {
                 console.log(data.data)
                 if (data.status === "link") {
                     setLoader(prev => ({
