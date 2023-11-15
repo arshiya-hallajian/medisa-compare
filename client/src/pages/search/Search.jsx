@@ -3,10 +3,10 @@ import {io} from "socket.io-client";
 import axios from "axios";
 import {useState} from "react";
 import Description from "../extractProduct/components/Description.jsx";
-import {UpdateWindow} from "../extractProduct/components/UpdateWindow.jsx";
 import {AddList} from "../extractProduct/components/AddList.jsx";
-import {EachProduct} from "../extractProduct/components/EachProduct.jsx";
-import MultiProduct from "../extractProduct/MultiProduct.jsx";
+import {EachSearchProduct} from "../../components/EachSearchProduct.jsx";
+import {UpdateSearchWindow} from "../../components/UpdateSearchWindow.jsx";
+import {MultiSearchProduct} from "../../components/MultiSearchProduct.jsx";
 
 export const Search = () => {
     const [fData, setFData] = useState([]);
@@ -47,7 +47,6 @@ export const Search = () => {
     const getData = async (url) => {
         try {
             const socket = await io(import.meta.env.VITE_API2)
-            // const res = await axios.get(`https://rhn9zs-8080.csb.app/?url=${url}`);
             const res = await axios.get(`${import.meta.env.VITE_API2}/api/extract/search?search=${url}`)
             console.log(res.data)
 
@@ -57,7 +56,7 @@ export const Search = () => {
             })
 
             socket.on('search-loader', (data) => {
-                console.log(data.data)
+                console.log(data)
                 if (data.status === "link") {
                     setLoader(prev => ({
                         ...prev,
@@ -134,11 +133,10 @@ export const Search = () => {
             className="h-screen w-full overflow-auto bg-gray-700 relative scrollbar scrollbar-thin scrollbar-thumb-red-600">
             <SearchBox click={getData}/>
             <Description data={desc} setData={setDesc}/>
-            <MultiProduct data={multip} setData={setMultip} update={updateWindowHandler}/>
-            <UpdateWindow data={updateWindow} setData={setUpdateWindow}/>
+            <MultiSearchProduct data={multip} setData={setMultip} update={updateWindowHandler}/>
+            <UpdateSearchWindow data={updateWindow} setData={setUpdateWindow}/>
             <AddList data={addList} setData={setAddList}/>
             {
-
                 loader.status === 2 &&
                 <div className="mx-auto flex w-3/6 text-gray-200 mb-8">
                     <p>{`${loader.number}/${loader.total}`}</p>
@@ -148,13 +146,12 @@ export const Search = () => {
                     </div>
                 </div>
             }
-            {loader.status === 1 &&
+            {
+                loader.status === 1 &&
                 <div className="mx-auto w-3/6 text-gray-200 text-center text-red-500 font-bold mb-8">
                     {/*<p className="">{loader.number}/{loader.total}</p>*/}
                     <p>{`scrap links on page(${loader.page})`}</p>
-
                 </div>
-
             }
 
             {
@@ -182,7 +179,7 @@ export const Search = () => {
                         {
                             fData.map((row, index) => {
                                 return (
-                                    <EachProduct key={index} row={row} desc={desFunc} multiP={multiProductHandler}
+                                    <EachSearchProduct key={index} eachProduct={row} desc={desFunc} multiP={multiProductHandler}
                                                  listHandler={addListHandler} updateW={updateWindowHandler}/>
                                 )
                             })

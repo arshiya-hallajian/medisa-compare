@@ -70,6 +70,7 @@ module.exports.searchController = async (req, res) => {
     const fData = []
     let count = 0;
 
+    res.status(200).send("ok")
     console.log(search,"search")
     if (search && search !== '') {
         try {
@@ -81,9 +82,14 @@ module.exports.searchController = async (req, res) => {
                 return res.status(404).send("no products found")
             }
 
+
             console.log(all_links,"all links")
             for (const link of all_links) {
+
+
                 const $ = await one_page(link)
+
+                count += 1
                 const main_div = $('div.column.main')
                 const price = indPage_price_scrap($, main_div)
                 const stocks = indPage_stock_scrap($)
@@ -131,7 +137,6 @@ module.exports.searchController = async (req, res) => {
 
         }
         io.emit('finished')
-        res.status(200).send(fData)
     }
 }
 
