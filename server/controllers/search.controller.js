@@ -11,6 +11,7 @@ const All_pages_link_scrap = async (search, io) => {
 
         while (currentPage < maxPage) {
 
+            search = search.replace(" ", "+")
             const pageLink = `${process.env.COMP_URL}/catalogsearch/result/?q=${search}&p=${currentPage}`
 
             const resp = await axios.get(pageLink, {
@@ -18,7 +19,7 @@ const All_pages_link_scrap = async (search, io) => {
                 timeout: 30000
             });
 
-            io.emit('extract-loader', {
+            io.emit('search-loader', {
                 status: "link",
                 page: currentPage
             })
@@ -66,21 +67,21 @@ module.exports.searchController = async (req, res) => {
 
     const search = req.query.search
     const io = req.app.get('socketIo')
+    const fData = []
+    let count = 0;
 
-    console.log(search)
-    if (search) {
+    console.log(search,"search")
+    if (search && search !== '') {
         try {
             // console.log('here')
             const all_links = await All_pages_link_scrap(search, io)
-            if (!all_links) {
+            if (!all_links || all_links.length === 0) {
                 console.log('no link in function')
                 io.emit('finished')
-                res.status(404).send("no products found")
+                return res.status(404).send("no products found")
             }
-            const fData = []
-            let count = 0;
 
-            console.log(all_links)
+            console.log(all_links,"all links")
             for (const link of all_links) {
                 const $ = await one_page(link)
                 const main_div = $('div.column.main')
@@ -116,19 +117,21 @@ module.exports.searchController = async (req, res) => {
                 fData.push(total)
 
 
-                io.emit('extract-loader', {
+                io.emit('search-loader', {
                     status: "loading",
                     number: count,
                     total: all_links.length,
                     data: fData
                 })
             }
-            res.status(200).send(fData)
             console.log(fData)
         } catch (e) {
             console.log(e, 'error in ind search')
+            res.status(400).send("error")
+
         }
         io.emit('finished')
+        res.status(200).send(fData)
     }
 }
 

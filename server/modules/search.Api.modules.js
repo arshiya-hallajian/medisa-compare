@@ -34,7 +34,7 @@ const MedisaApi_GetAllDataFromProduct = async (mpn, firstname) => {
         console.log('not exist')
         return null
     } else if (medisaSearchResult.length > 0) {
-        console.log('found ', MedisaApi_AllDataFromProduct.length)
+        console.log('found ', medisaSearchResult.length)
         console.log('found ', firstname)
         for (let x of medisaSearchResult) {
             if (x['name'].includes(firstname)) {
@@ -50,7 +50,7 @@ const MedisaApi_GetAllDataFromProduct = async (mpn, firstname) => {
                             price: x['price'],
                             retail_price: x['retail_price'],
                             sale_price: x['sale_price'],
-                            calc_price: x['calc_price']
+                            calc_price: x['calculated_price']
                         }
                     })
                 } else {
@@ -65,7 +65,7 @@ const MedisaApi_GetAllDataFromProduct = async (mpn, firstname) => {
                         if (options.length > 0) {
                             let label = ''
                             for (let option of options) {
-                                label += option.label
+                                label += " " + option.label
                             }
                             price.push({
                                 image: y['image_url'],
@@ -75,7 +75,7 @@ const MedisaApi_GetAllDataFromProduct = async (mpn, firstname) => {
                                     price: y['price'],
                                     retail_price: y['retail_price'],
                                     sale_price: y['sale_price'],
-                                    calc_price: y['calc_price']
+                                    calc_price: y['calculated_price']
                                 }
                             })
                         } else {

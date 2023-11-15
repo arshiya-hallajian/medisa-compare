@@ -39,8 +39,6 @@ mongoose.connect(process.env.MONGODB_URL).then(()=>{
 
 
 io.on('connection',(Socket) =>{
-
-
     console.log("socket connected")
     Socket.on('disconnect',()=>{
         console.log("socket disconnected")
