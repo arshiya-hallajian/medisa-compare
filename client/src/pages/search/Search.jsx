@@ -22,12 +22,8 @@ export const Search = () => {
     const [updateWindow, setUpdateWindow] = useState({
         isOpen: false,
         data: null,
-        offer_prices: {
-            Neach: null,
-            Vbox: null
-        },
-        each: null,
-        box: null
+        indPrice: null,
+        default_mpn: null
     });
     const [desc, setDesc] = useState({
         isOpen: false,
@@ -88,15 +84,12 @@ export const Search = () => {
         }
     }
 
-    const updateWindowHandler = (data, offerPrice, ind, each = null, box = null,mpn) => {
+    const updateWindowHandler = (data, ind, mpn) => {
         setUpdateWindow(prev => ({
             ...prev,
             isOpen: true,
             data: data,
-            offer_prices: offerPrice,
             indPrice: ind,
-            each: each,
-            box: box,
             default_mpn: mpn
         }))
     }

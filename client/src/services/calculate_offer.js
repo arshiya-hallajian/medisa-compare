@@ -1,5 +1,4 @@
 export const eachOffer = (productPrice, indipendencePrice) => {
-
     if (typeof (productPrice) === 'number' && typeof (indipendencePrice) === 'number') {
         const newPrice = productPrice / 100
         const sPrice = indipendencePrice - newPrice

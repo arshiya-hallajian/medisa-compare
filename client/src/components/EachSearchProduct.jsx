@@ -1,82 +1,20 @@
-import {BoxOffer, eachOffer, percent30} from "../services/calculate_offer.js";
+
 
 export const EachSearchProduct = ({eachProduct, updateW, listHandler, multiP, desc}) => {
 
-    let price_label, offer_price, offerVariantBox_price,
-        offer2_price = {minPrice: null, maxPrice: null},
-        offer2VariantBox_price = {minPrice: null, maxPrice: null},
-        eachVariantPrice, BoxVariantPrice, medisaNormalPrice, newdesc, medisaName;
+    let newdesc, medisaName;
+    let stockLimit = [];
 
+    if((eachProduct.stock[0].quantity === 0 || eachProduct.stock[1].quantity === 0) ){
+        stockLimit.push(eachProduct)
+    }
 
-
-    if (eachProduct.medisa && eachProduct.medisa[0]) {
         newdesc = eachProduct.desc !== '' ? eachProduct.desc : 'No Description';
         medisaName = eachProduct.medisa[0].name.split(' ').slice(0, 3).join(' ');
-        if (eachProduct.medisa[0].type === 'normal') {
-            //get the price of normal product
-            medisaNormalPrice = eachProduct.medisa[0].prices['calc_price']
-            const name = eachProduct.medisa[0].name.toLowerCase();
-            //check if is box or not and check offer price
-            if (name.includes('each')) {
-                price_label = 'each'
-                if (eachProduct.price[0] && (eachProduct.price[0].quantity.includes('Unit') || eachProduct.price[0].quantity.includes('Units'))) {
-                    const fixed_price = eachProduct.price[0].priceNumber.replace('$', '').replace(',', '')
-                    offer_price = eachOffer(medisaNormalPrice, parseFloat(fixed_price))
-                    offer2_price = percent30(medisaNormalPrice, parseFloat(fixed_price))
-                } else {
-                    offer_price = 'first no'
-                }
-            } else if (
-                name.includes('box') ||
-                name.includes('pack') ||
-                name.includes('pcs') ||
-                name.includes('pkt') ||
-                name.includes('pkts') ||
-                name.includes('carton') ||
-                name.includes('jar') ||
-                name.includes('jars')
-            ) {
-                price_label = 'Box'
-                if (eachProduct.price[1]) {
-                    const fixed_price = eachProduct.price[1].priceNumber.replace('$', '').replace(',', '')
-                    offer_price = BoxOffer(medisaNormalPrice, parseFloat(fixed_price))
-                    offer2_price = percent30(medisaNormalPrice, parseFloat(fixed_price))
-                } else {
-                    offer_price = 'sec no'
-                }
-            } else {
-                price_label = 'no-label'
-            }
-        } else if (eachProduct.medisa && eachProduct.medisa[0].type === 'variant') {
-            let fixedEach_price = null, fixedBox_price = null
 
-            if (eachProduct.price[0] && eachProduct.price[1]) {
-                fixedEach_price = parseFloat(eachProduct.price[0].priceNumber.replace('$', '').replace(',', ''))
-                fixedBox_price = parseFloat(eachProduct.price[1].priceNumber.replace('$', '').replace(',', ''))
-            } else if (eachProduct.price[0] && (eachProduct.price[0].quantity.includes('Unit') || eachProduct.price[0].quantity.includes('Units'))) {
-                fixedEach_price = parseFloat(eachProduct.price[0].priceNumber.replace('$', '').replace(',', ''))
-            } else if (eachProduct.price[0] && (!eachProduct.price[0].quantity.includes('Unit') || !eachProduct.price[0].quantity.includes('Units'))) {
-                fixedBox_price = parseFloat(eachProduct.price[0].priceNumber.replace('$', '').replace(',', ''))
-            }
 
-            if (eachProduct.medisa[0].variants && eachProduct.medisa[0].variants.length > 0) {
-                if (eachProduct.medisa[0].variants[0].prices['calc_price']) {
-                    eachVariantPrice = eachProduct.medisa[0].variants[0].prices['calc_price'];
-                    offer_price = eachOffer(eachVariantPrice, fixedEach_price)
-                    offer2_price = percent30(eachVariantPrice, fixedEach_price)
-                }
-                // offerVariantBox_price
-                if (eachProduct.medisa[0].variants.length === 2) {
-                    BoxVariantPrice = eachProduct.medisa[0].variants[1].prices['calc_price'];
-                    offerVariantBox_price = BoxOffer(BoxVariantPrice, fixedBox_price)
-                    offer2VariantBox_price = percent30(BoxVariantPrice, fixedBox_price)
-                }
-            }
-        } else {
-            console.log('error is here')
-        }
 
-    }
+
     return (
         <tr
             className={` text-slate-100`}>
@@ -126,10 +64,10 @@ export const EachSearchProduct = ({eachProduct, updateW, listHandler, multiP, de
                             </td>
                             {
                                 eachProduct.medisa[0].type === 'normal' ?
-                                    <td className={`border w-32 whitespace-nowrap px-2 ${(offer2_price.maxPrice && offer2_price.minPrice) && (medisaNormalPrice > offer2_price.maxPrice || medisaNormalPrice < offer2_price.minPrice ? 'bg-red-600' : medisaNormalPrice <= offer_price ? 'bg-green-600' : 'bg-orange-600')} `}>
+                                    <td className={`${eachProduct.medisa[0].editted.color}`}>
                                         <p>
                                             {
-                                                `${price_label} : $${medisaNormalPrice}`
+                                                `${eachProduct.medisa[0].editted.price_label} : $${eachProduct.medisa[0].editted.medisaNormalPrice}`
                                             }
                                         </p>
                                     </td>
@@ -139,18 +77,16 @@ export const EachSearchProduct = ({eachProduct, updateW, listHandler, multiP, de
                                             {
                                                 eachProduct.medisa[0].variants[0] &&
                                                 <div
-                                                    className={`${(offer2_price.maxPrice && offer2_price.minPrice) && (eachVariantPrice > offer2_price.maxPrice || eachVariantPrice < offer2_price.minPrice ? 'text-red-600' : eachVariantPrice <= offer_price ? 'text-green-600' : 'text-orange-600')}`}>
+                                                    className={`${eachProduct.medisa[0].variants[0].editted.color}`}>
                                                     {
-                                                        `${eachProduct.medisa[0].variants[0].label} : $${eachVariantPrice}`
+                                                        `${eachProduct.medisa[0].variants[0].label} : $${eachProduct.medisa[0].variants[0].editted.eachVariantPrice}`
                                                     }
                                                 </div>
                                             }
                                             {
                                                 eachProduct.medisa[0].variants[1] &&
-                                                <div
-                                                    //
-                                                    className={`${(offer2VariantBox_price.maxPrice && offer2VariantBox_price.minPrice) && (BoxVariantPrice > offer2VariantBox_price.maxPrice || BoxVariantPrice < offer2VariantBox_price.minPrice ? 'text-red-600' : BoxVariantPrice <= offerVariantBox_price ? 'text-green-600' : 'text-orange-600')}`}>
-                                                    {`${eachProduct.medisa[0].variants[1].label} : $${BoxVariantPrice}`}
+                                                <div className={`${eachProduct.medisa[0].variants[1].editted.color}`}>
+                                                    {`${eachProduct.medisa[0].variants[1].label} : $${eachProduct.medisa[0].variants[1].editted.BoxVariantPrice}`}
                                                 </div>
                                             }
                                         </td> :
@@ -167,13 +103,7 @@ export const EachSearchProduct = ({eachProduct, updateW, listHandler, multiP, de
                                         className="bg-red-400 px-4 py-1 rounded-lg hover:bg-red-600"
                                         onClick={() => updateW(
                                             eachProduct.medisa[0],
-                                            {
-                                                Neach: offer_price,
-                                                Vbox: offerVariantBox_price
-                                            },
                                             eachProduct.price,
-                                            eachVariantPrice,
-                                            BoxVariantPrice,
                                             eachProduct.mpn
                                         )}>
                                         update
@@ -189,7 +119,8 @@ export const EachSearchProduct = ({eachProduct, updateW, listHandler, multiP, de
                     :
                     <td className="border" colSpan={5}>
                         <button disabled={true}
-                            onClick={() => listHandler(eachProduct, offer_price)}
+                            // onClick={() => listHandler(eachProduct, offer_price)}
+                            onClick={() => console.log("add clicked")}
                             className="px-4 py-1 bg-red-400 rounded-lg hover:bg-red-600">
                             add to list
                         </button>

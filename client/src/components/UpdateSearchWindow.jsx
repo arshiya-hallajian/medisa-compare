@@ -7,15 +7,19 @@ export const UpdateSearchWindow = ({data, setData}) => {
         each:null,
         box:null
     });
+    const [s_price, setS_price] = useState(null)
+    const [B_price, setB_price] = useState(null)
+
     const {register, unregister, handleSubmit, setValue} = useForm()
     // const [product, setProduct] = useState(null);
-    let s_price = data.offer_prices.Neach, indPrice = data.indPrice, B_price = data.offer_prices.Vbox
+    let indPrice = data.indPrice;
 
     useEffect(() => {
         if (data.data) {
             console.log(data)
             if (data.data.type === 'normal') {
                 // setProduct(data.data)
+                setS_price(data.data.editted.offer_price)
                 if (data.data) {
                     setValue('id', data.data.id)
                     setValue('type', 'normal')
@@ -30,6 +34,8 @@ export const UpdateSearchWindow = ({data, setData}) => {
                     unregister('box')
                 }
             } else if (data.data.type === 'variant') {
+                setS_price(data.data.variants[0].editted.offer_price)
+                setB_price(data.data.variants[1].editted.offerVariantBox_price)
                 setValue('D_mpn', data.default_mpn)
                 setValue('name', data.data.name)
                 setValue('id', data.data.id)
@@ -178,7 +184,7 @@ export const UpdateSearchWindow = ({data, setData}) => {
                                        className="rounded-md py-1 w-full text-black text-center"/>
                             </div>
                         </div>
-                        {data.each && <>
+                        {data.data && data.data.type === 'variant' && <>
                             <br/>
                             <hr/>
                             <br/>
@@ -234,7 +240,7 @@ export const UpdateSearchWindow = ({data, setData}) => {
                                        className="rounded-md py-1 w-full text-black text-center"/>
                             </div>
                         </>}
-                        {data.box &&
+                        {data.data && data.data.type === 'variant' &&
                             <>
                                 <br/>
                                 <hr/>

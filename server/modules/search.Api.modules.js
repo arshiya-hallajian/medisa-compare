@@ -38,6 +38,7 @@ const MedisaApi_GetAllDataFromProduct = async (mpn, firstname) => {
         console.log('found ', firstname)
         for (let x of medisaSearchResult) {
             if (x['name'].includes(firstname)) {
+                const medisaStock = x['inventory_level'] !== 0 ;
                 if (x['option_set_id'] == null) {
                     // console.log("type null")
                     data.push({
@@ -45,6 +46,7 @@ const MedisaApi_GetAllDataFromProduct = async (mpn, firstname) => {
                         id: x['id'],
                         name: x['name'],
                         mpn: mpn,
+                        inventory: medisaStock,
                         sku: x['sku'],
                         prices: {
                             price: x['price'],
@@ -89,6 +91,7 @@ const MedisaApi_GetAllDataFromProduct = async (mpn, firstname) => {
                         id: x['id'],
                         name: x['name'],
                         mpn: mpn,
+                        inventory: medisaStock,
                         sku: x['sku'],
                         variants: price,
                     })

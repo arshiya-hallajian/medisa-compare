@@ -1,6 +1,7 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 const {MedisaApi_GetAllDataFromProduct} = require("../modules/search.Api.modules");
+const {medisaEditor} = require("../modules/medisaFixer.modules");
 
 
 const All_pages_link_scrap = async (search, io) => {
@@ -73,6 +74,10 @@ module.exports.searchController = async (req, res) => {
     res.status(200).send("ok")
     console.log(search,"search")
     if (search && search !== '') {
+        const PriceDifferenceCounter = []
+        const StockCounter = []
+
+
         try {
             // console.log('here')
             const all_links = await All_pages_link_scrap(search, io)
@@ -108,6 +113,7 @@ module.exports.searchController = async (req, res) => {
 
                 const medisaCheck = await MedisaApi_GetAllDataFromProduct(mpn, title.split(' ')[0])
 
+
                 const total = {
                     name: title,
                     link: link,
@@ -120,7 +126,12 @@ module.exports.searchController = async (req, res) => {
                     medisa: medisaCheck
                 }
                 // console.log(count)
-                fData.push(total)
+
+                const editMedisaCheck =  await medisaEditor(total, PriceDifferenceCounter, StockCounter)
+
+
+
+                fData.push(editMedisaCheck)
 
 
                 io.emit('search-loader', {
@@ -130,15 +141,19 @@ module.exports.searchController = async (req, res) => {
                     data: fData
                 })
             }
+
             console.log(fData)
         } catch (e) {
             console.log(e, 'error in ind search')
             res.status(400).send("error")
 
         }
+
         io.emit('finished')
     }
 }
+
+
 
 
 const indPage_spec_scrap = ($, main_div) => {
