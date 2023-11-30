@@ -6,7 +6,7 @@ const medisaEditor = (medisaData, PriceDifferenceCounter, StockCounter) => {
                 offer2VariantBox_price = {minPrice: null, maxPrice: null},
                 eachVariantPrice, BoxVariantPrice, medisaNormalPrice;
 
-            if(medisaData.stock[1] === 0 ){
+            if(medisaData.stock[1].quantity === 0 ){
                 StockCounter.push(medisaData.mpn)
             }
 

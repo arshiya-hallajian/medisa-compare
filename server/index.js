@@ -5,6 +5,7 @@ const cors = require("cors");
 const http = require('http');
 const {Server} = require('socket.io');
 const mongoose = require("mongoose");
+const bot = require('./services/telegraf');
 
 require('dotenv').config();
 
@@ -27,6 +28,7 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json())
 app.set('socketIo',io)
+app.use(bot.webhookCallback("/mytelreport"))
 
 //import routers
 const pricing_route = require('./routes/pricing.route')

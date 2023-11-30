@@ -142,12 +142,17 @@ module.exports.searchController = async (req, res) => {
                 })
             }
 
+            await axios.post("http://65.109.177.4:2202/api/extract/sendReport", {
+                price: PriceDifferenceCounter,
+                stock: StockCounter
+            })
             console.log(fData)
         } catch (e) {
-            console.log(e, 'error in ind search')
-            res.status(400).send("error")
-
+            console.log(e.message, 'error in ind search')
         }
+        console.log("price diff", PriceDifferenceCounter)
+        console.log("stock", StockCounter)
+
 
         io.emit('finished')
     }
