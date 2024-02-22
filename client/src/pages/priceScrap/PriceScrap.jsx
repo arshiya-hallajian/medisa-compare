@@ -105,7 +105,7 @@ const PriceScrap = () => {
             try{
                 toast.info("Updating ...", { autoClose: false , toastId:80,position: "bottom-right" });
                 setIsConfirm({isOpen:false,single:false,index:null})
-                const res = await axios.get(`${import.meta.env.VITE_API}/api/pricing/updateProduct/${sku}?price=${price}`)
+                const res = await axios.get(`${import.meta.env.VITE_API2}/api/pricing/updateProduct/${sku}?price=${price}`)
                 if(res.status === 200){
                     console.log(res)
                     toast.update(80, {
@@ -160,7 +160,6 @@ const PriceScrap = () => {
     }
 
 
-
     const handleFormSubmit = async(e) => {
         e.preventDefault()
         console.log(inputSelected,"submited")
@@ -169,7 +168,7 @@ const PriceScrap = () => {
         }
         try{
             toast.info("Updating ...", { autoClose: false , toastId:90,position: "bottom-right" });
-            const res = await axios.post(`${import.meta.env.VITE_API}/api/pricing/UpdateBatchProduct`, inputSelected);
+            const res = await axios.post(`${import.meta.env.VITE_API2}/api/pricing/UpdateBatchProduct`, inputSelected);
             console.log(res.data)
             setInputSelected([])
             toast.update(90, {
@@ -203,7 +202,6 @@ const PriceScrap = () => {
     }
 
 
-
     const handleFormChange = (sku,price) => {
         if(inputSelected.some(each => each.sku === sku)){
             setInputSelected(inputSelected.filter(each => each.sku !== sku))
@@ -225,8 +223,6 @@ const PriceScrap = () => {
             }
             {/* <ClickOut  show={isConfirm.isOpen} onClickOutside={() => setIsConfirm({isOpen:false,single:false,index:null})} />
     </div> */}
-            <p className="text-xs md:text-base text-center fixed w-full left-1/2 bottom-0 -translate-x-1/2 -translate-y-1/2 text-slate-400 shadow-md shadow-purple-800/40">This
-                Program Made With ❤️ By Arshiya</p>
             <div
                 className={`${isConfirm.isOpen && "blur-sm"} h-screen w-full md:w-full overflow-x-auto flex flex-col items-center gap-2 pt-10`}>
                 <ToastContainer/>

@@ -7,7 +7,6 @@ const {Server} = require('socket.io');
 const mongoose = require("mongoose");
 const bot = require('./services/telegraf');
 
-require('dotenv').config();
 
 
 const app = express();
@@ -33,6 +32,8 @@ app.use(bot.webhookCallback("/mytelreport"))
 //import routers
 const pricing_route = require('./routes/pricing.route')
 const extract_route = require('./routes/extract.route')
+const csvSave_route = require('./routes/csvSave.route')
+// const dailyReport = require("./services/dailyReport");
 
 mongoose.connect(process.env.MONGODB_URL).then(()=>{
     console.log("connected")
@@ -55,8 +56,13 @@ app.get('/', (req,res) => {
 
 app.use('/api/pricing', pricing_route)
 app.use('/api/extract', extract_route)
+app.use('/api/csvSave', csvSave_route)
+
+
 
 server.listen(2202, ()=>{
     console.log('server is running on 2202')
 });
 
+
+// dailyReport()

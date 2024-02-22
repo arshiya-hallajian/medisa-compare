@@ -149,9 +149,7 @@ const saveToDatabase = async (data, Socket) => {
     let counter = 0
     try{
         for(const everyCode of data){
-
             const P_exist = await Product.findOne({mpn: everyCode});
-
             if(P_exist){
                 P_exist.Dprice = await defaultSite(everyCode);
                 P_exist.Cprice = await compSite(everyCode,"price");

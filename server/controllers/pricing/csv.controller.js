@@ -9,11 +9,11 @@ const {saveToDatabase} = require("../../modules/pricingScrap.modules");
 module.exports.csvController = async (req,res)=>{
     let io = req.app.get('socketIo')
 
-    io.on('mpns',async(mpnsData)=>{
-        const mpns = mpnsData.array
-        console.log(mpnsData.array)
-        await saveToDatabase(mpns,io)
-    })
+    // io.on('mpns',async(mpnsData)=>{
+    //     const mpns = mpnsData.array
+    //     console.log(mpnsData.array)
+    //     await saveToDatabase(mpns,io)
+    // })
 
 
     const mpns = [];
@@ -26,7 +26,8 @@ module.exports.csvController = async (req,res)=>{
         })
         .on("end", async () => {
             console.log("finished");
-            res.status(200).send(mpns)
+            await saveToDatabase(mpns,io)
+            // res.status(200).send(mpns)
             // fs.unlink(`./uploads/${fileName.filename}`,(err) => {
             //     if (err) {
             //       console.error(err);

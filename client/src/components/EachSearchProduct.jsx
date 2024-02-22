@@ -1,18 +1,12 @@
-
-
 export const EachSearchProduct = ({eachProduct, updateW, listHandler, multiP, desc}) => {
 
     let newdesc, medisaName;
-    let stockLimit = [];
 
-    if((eachProduct.stock[0].quantity === 0 || eachProduct.stock[1].quantity === 0) ){
-        stockLimit.push(eachProduct)
-    }
-
+    if (eachProduct.medisa) {
         newdesc = eachProduct.desc !== '' ? eachProduct.desc : 'No Description';
         medisaName = eachProduct.medisa[0].name.split(' ').slice(0, 3).join(' ');
 
-
+    }
 
 
     return (
@@ -56,7 +50,7 @@ export const EachSearchProduct = ({eachProduct, updateW, listHandler, multiP, de
                 })}
             </td>
             {
-                eachProduct.medisa[0] ?
+                eachProduct.medisa ?
                     eachProduct.medisa.length === 1 ?
                         <>
                             <td className="border w-48 whitespace-nowrap">
@@ -120,8 +114,8 @@ export const EachSearchProduct = ({eachProduct, updateW, listHandler, multiP, de
                     <td className="border" colSpan={5}>
                         <button disabled={true}
                             // onClick={() => listHandler(eachProduct, offer_price)}
-                            onClick={() => console.log("add clicked")}
-                            className="px-4 py-1 bg-red-400 rounded-lg hover:bg-red-600">
+                                onClick={() => console.log("add clicked")}
+                                className="px-4 py-1 bg-red-400 rounded-lg hover:bg-red-600">
                             add to list
                         </button>
                     </td>

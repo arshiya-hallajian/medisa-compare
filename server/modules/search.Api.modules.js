@@ -99,7 +99,11 @@ const MedisaApi_GetAllDataFromProduct = async (mpn, firstname) => {
             }
         }
     }
-    return data
+    if(data.length > 0){
+        return data
+    }else{
+        return null
+    }
 }
 
 module.exports = {MedisaApi_GetAllDataFromProduct,MedisaSearchByMpn}

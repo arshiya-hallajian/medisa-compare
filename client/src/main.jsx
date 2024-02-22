@@ -7,6 +7,7 @@ import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import PriceScrap from "./pages/priceScrap/PriceScrap.jsx";
 import ExtractProduct from "./pages/extractProduct/ExtractProduct.jsx";
 import {Search} from "./pages/search/Search.jsx";
+import {CsvDb} from "./pages/csv-db/CsvDb.jsx";
 import('preline')
 
 const router = createBrowserRouter([
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
     {
         path: '/searchProduct',
         element: <Search/>
+    },
+    {
+        path: '/csv-saver',
+        element: <CsvDb/>
     }
 ])
 

@@ -6,7 +6,7 @@ const medisaEditor = (medisaData, PriceDifferenceCounter, StockCounter) => {
                 offer2VariantBox_price = {minPrice: null, maxPrice: null},
                 eachVariantPrice, BoxVariantPrice, medisaNormalPrice;
 
-            if(medisaData.stock[1].quantity === 0 ){
+            if(medisaData.stock[1].quantity === 0 && !eachMedisa.inventory){
                 StockCounter.push(medisaData.mpn)
             }
 
@@ -53,7 +53,7 @@ const medisaEditor = (medisaData, PriceDifferenceCounter, StockCounter) => {
                 }
                 let color = calculateOfferPrice(medisaNormalPrice, offer_price, offer2_price, false)
 
-                if (color === "text-red-600" || color === "bg-red-600") {
+                if (color === "text-orange-600" || color === "bg-orange-600") {
                     PriceDifferenceCounter.push(medisaData.mpn)
                 }
                 eachMedisa.editted = {
@@ -83,11 +83,8 @@ const medisaEditor = (medisaData, PriceDifferenceCounter, StockCounter) => {
                         offer2_price = percent30(eachVariantPrice, fixedEach_price)
                         let color = calculateOfferPrice(eachVariantPrice, offer_price, offer2_price, true)
 
-                        if (color === "text-red-600" || color === "bg-red-600") {
-                            const index = PriceDifferenceCounter.findIndex((mpn) => {
-                                return mpn === medisaData.mpn
-                            })
-                            if (index !== -1) {
+                        if (color === "text-orange-600" || color === "bg-orange-600") {
+                            if(!PriceDifferenceCounter.includes(medisaData.mpn)){
                                 PriceDifferenceCounter.push(medisaData.mpn)
                             }
                         }
@@ -106,11 +103,8 @@ const medisaEditor = (medisaData, PriceDifferenceCounter, StockCounter) => {
                         offer2VariantBox_price = percent30(BoxVariantPrice, fixedBox_price)
                         let color = calculateOfferPrice(BoxVariantPrice, offerVariantBox_price, offer2VariantBox_price, true)
 
-                        if (color === "text-red-600" || color === "bg-red-600") {
-                            const index = PriceDifferenceCounter.findIndex((mpn) => {
-                                return mpn === medisaData.mpn
-                            })
-                            if (index !== -1) {
+                        if (color === "text-orange-600" || color === "bg-orange-600") {
+                            if(!PriceDifferenceCounter.includes(medisaData.mpn)){
                                 PriceDifferenceCounter.push(medisaData.mpn)
                             }
                         }

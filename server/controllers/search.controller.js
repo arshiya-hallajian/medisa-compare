@@ -4,7 +4,7 @@ const {MedisaApi_GetAllDataFromProduct} = require("../modules/search.Api.modules
 const {medisaEditor} = require("../modules/medisaFixer.modules");
 
 
-const All_pages_link_scrap = async (search, io) => {
+const All_pages_link_scrap = async (search, io = null) => {
     try {
         let currentPage = 1
         const maxPage = 100
@@ -20,10 +20,12 @@ const All_pages_link_scrap = async (search, io) => {
                 timeout: 30000
             });
 
-            io.emit('search-loader', {
-                status: "link",
-                page: currentPage
-            })
+            if (io) {
+                io.emit('search-loader', {
+                    status: "link",
+                    page: currentPage
+                })
+            }
 
             const $ = cheerio.load(resp.data);
 
@@ -64,76 +66,75 @@ const one_page = async (url, maxRetries = 3) => {
 }
 
 
-module.exports.searchController = async (req, res) => {
-
-    const search = req.query.search
-    const io = req.app.get('socketIo')
+const searchFunction = async (search, io = null, title = null) => {
     const fData = []
     let count = 0;
-
-    res.status(200).send("ok")
-    console.log(search,"search")
-    if (search && search !== '') {
-        const PriceDifferenceCounter = []
-        const StockCounter = []
+    const PriceDifferenceCounter = []
+    const StockCounter = []
 
 
-        try {
-            // console.log('here')
-            const all_links = await All_pages_link_scrap(search, io)
-            if (!all_links || all_links.length === 0) {
-                console.log('no link in function')
+    try {
+        // console.log('here')
+        const all_links = await All_pages_link_scrap(search, io)
+        if (!all_links || all_links.length === 0) {
+            console.log('no link in function')
+            if(io) {
                 io.emit('finished')
-                return res.status(404).send("no products found")
+            }
+            return null
+        }
+
+
+        console.log(all_links, "all links")
+        for (const link of all_links) {
+
+
+            const $ = await one_page(link)
+
+            count += 1
+            const main_div = $('div.column.main')
+            const price = indPage_price_scrap($, main_div)
+            const stocks = indPage_stock_scrap($)
+            const specs = indPage_spec_scrap($, main_div)
+
+            //scrap mpn
+            const s_mpn = $('#maincontent > div.columns > div > div.product-info-main > div.product.attribute.overview > div').text().split(' ')
+            const mpn = s_mpn[s_mpn.length - 1]
+            //scrap title
+            const title = main_div.find('h1.page-title > span').text()
+            //scrap sku
+            const sku = main_div.find('div.product-info-main div.sku.product div.value').text()
+            //scrap description
+            const description = main_div.find('div.description.product div.value').text()
+
+
+            const medisaCheck = await MedisaApi_GetAllDataFromProduct(mpn, title.split(' ')[0])
+
+
+            const total = {
+                name: title,
+                link: link,
+                specs: specs,
+                mpn: mpn,
+                sku: sku,
+                desc: description,
+                stock: stocks,
+                price: price,
+                medisa: medisaCheck
+            }
+            // console.log(count)
+
+            if(medisaCheck){
+                const editMedisaCheck = await medisaEditor(total, PriceDifferenceCounter, StockCounter)
+                fData.push(editMedisaCheck)
+            }else{
+                fData.push(total)
             }
 
 
-            console.log(all_links,"all links")
-            for (const link of all_links) {
 
 
-                const $ = await one_page(link)
-
-                count += 1
-                const main_div = $('div.column.main')
-                const price = indPage_price_scrap($, main_div)
-                const stocks = indPage_stock_scrap($)
-                const specs = indPage_spec_scrap($, main_div)
-
-                //scrap mpn
-                const s_mpn = $('#maincontent > div.columns > div > div.product-info-main > div.product.attribute.overview > div').text().split(' ')
-                const mpn = s_mpn[s_mpn.length - 1]
-                //scrap title
-                const title = main_div.find('h1.page-title > span').text()
-                //scrap sku
-                const sku = main_div.find('div.product-info-main div.sku.product div.value').text()
-                //scrap description
-                const description = main_div.find('div.description.product div.value').text()
-
-
-                const medisaCheck = await MedisaApi_GetAllDataFromProduct(mpn, title.split(' ')[0])
-
-
-                const total = {
-                    name: title,
-                    link: link,
-                    specs: specs,
-                    mpn: mpn,
-                    sku: sku,
-                    desc: description,
-                    stock: stocks,
-                    price: price,
-                    medisa: medisaCheck
-                }
-                // console.log(count)
-
-                const editMedisaCheck =  await medisaEditor(total, PriceDifferenceCounter, StockCounter)
-
-
-
-                fData.push(editMedisaCheck)
-
-
+            if (io) {
                 io.emit('search-loader', {
                     status: "loading",
                     number: count,
@@ -142,22 +143,39 @@ module.exports.searchController = async (req, res) => {
                 })
             }
 
+        }
+
+        if (io) {
+            io.emit('finished')
+        }
+
+        if(title){
             await axios.post("http://65.109.177.4:2202/api/extract/sendReport", {
                 price: PriceDifferenceCounter,
-                stock: StockCounter
+                stock: StockCounter,
+                title: title
             })
-            console.log(fData)
-        } catch (e) {
-            console.log(e.message, 'error in ind search')
         }
-        console.log("price diff", PriceDifferenceCounter)
-        console.log("stock", StockCounter)
-
-
-        io.emit('finished')
+        console.log(fData)
+        return fData
+    } catch (e) {
+        console.log(e.message, 'error in ind search')
+        return null
     }
 }
 
+searchController = async (req, res) => {
+
+    const search = req.query.search
+    const io = req.app.get('socketIo')
+
+
+    res.status(200).send("ok")
+    console.log(search, "search")
+    if (search && search !== '') {
+        searchFunction(search, io,`🔍Your Search Report of _${search}_:`)
+    }
+}
 
 
 
@@ -227,3 +245,5 @@ const indPage_price_scrap = ($, main_div) => {
     })
     return price
 }
+
+module.exports = {searchFunction,searchController, one_page, indPage_stock_scrap, indPage_spec_scrap, indPage_price_scrap}

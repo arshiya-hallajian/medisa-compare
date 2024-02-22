@@ -4,7 +4,6 @@ const {NavbarUpdateController, NavbarDataController} = require('../controllers/e
 const {getAllProductsController} = require('../controllers/extract/getAllProducts.controller')
 const {updateProductController} = require("../controllers/extract/updateProduct.controller");
 const {searchController} = require("../controllers/search.controller");
-// const {mailSender} = require("../services/mailSender");
 const bot = require("../services/telegraf");
 
 
@@ -25,28 +24,34 @@ router.post('/sendReport', async (req, res) => {
 
     const PriceDifferenceCounter = req.body.price
     const StockCounter = req.body.stock
+    const title = req.body.title
     console.log(PriceDifferenceCounter, StockCounter)
+    const telIds = ['111236111',"5007806275"]
     // myTest()
-    bot.telegram.sendMessage("5007806275",
-        `
-        products that have different price:
-        ${!PriceDifferenceCounter ? "nothing": (
-            PriceDifferenceCounter.map(mpn=>{
-                return mpn
-            })
-        )}
-        -----------------------------
-        products that doesnt have stock 
-        ${!StockCounter ? "nothing": (
-            StockCounter.map(mpn=>{
-                return mpn
-            })  
-        )}
-        `)
-    res.send("ok")
 
+    for (const id of telIds) {
+        await bot.telegram.sendMessage(id,
+            `
+*${title}* 
+        
+products that have different price:
+${!PriceDifferenceCounter ? "nothing" : (
+                PriceDifferenceCounter.map(mpn => {
+                    return (`${mpn}\n`)
+                })
+            )}
+-----------------------------
+products that doesnt have stock:
+${!StockCounter ? "nothing" : (
+                StockCounter.map(mpn => {
+                    return (`${mpn}`);
+                })
+            )}
+        `, {parse_mode: "Markdown"})
+        res.send("ok")
+
+    }
 })
-
 
 
 module.exports = router

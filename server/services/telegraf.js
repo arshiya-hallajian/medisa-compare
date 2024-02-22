@@ -21,7 +21,7 @@ const setupWebhook = async () =>{
         await bot.telegram.setWebhook('https://65.109.177.4:443/mytelreport');
         console.log('Webhook set up successfully');
     } catch (error) {
-        console.error('Error setting up webhook:', error);
+        console.error('Error setting up webhook:');
     }
 }
 
