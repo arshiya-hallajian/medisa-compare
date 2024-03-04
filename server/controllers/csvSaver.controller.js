@@ -5,6 +5,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const {medisaSearchByMpn} = require("../modules/productScrap.modules");
 const {teammed_search} = require("../modules/csv_save/teammed");
+const {brightSky_Search} = require("../modules/csv_save/brightSky");
 
 
 module.exports.csvDatabaseRead = async (req, res) => {
@@ -44,6 +45,9 @@ module.exports.csvSaver = async (req, res) => {
                     // console.log("kir",medisaResult)
                     if (medisaResult.length > 0) {
                         row.medisa.push(medisaResult)
+
+                        const brightSky = await brightSky_Search(mpn,medisaResult[1].name);
+                        if(brightSky) row.brightSky = brightSky
                         const teammedData = await teammed_search(mpn, medisaResult[1].name);
                         if(teammedData) row.teammed = teammedData
                     }
@@ -60,7 +64,7 @@ module.exports.csvSaver = async (req, res) => {
         // console.log(fixedData)
         res.status(200).send(fixedData)
     } catch (e) {
-        console.log(e.message, "error in db save")
+        console.log("error in db save :", e.message)
     }
 }
 

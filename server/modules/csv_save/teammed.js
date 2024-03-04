@@ -96,6 +96,8 @@ const teammed_search = async (mpn, name) => {
                 stockStatus = "limited";
             } else if (stockStatusText.toLowerCase().includes("out of stock")) {
                 stockStatus = false;
+            }else{
+                stockStatus = stockStatusText.toLowerCase()
             }
 
 
@@ -129,4 +131,4 @@ const teammed_search = async (mpn, name) => {
 }
 
 
-module.exports = {search_in_teammed, teammed_search}
+module.exports = {search_in_teammed, teammed_search, getPageResultByLink}
