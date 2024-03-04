@@ -90,7 +90,6 @@ const searchFunction = async (search, io = null, title = null) => {
 
 
             const $ = await one_page(link)
-
             count += 1
             const main_div = $('div.column.main')
             const price = indPage_price_scrap($, main_div)
@@ -106,7 +105,6 @@ const searchFunction = async (search, io = null, title = null) => {
             const sku = main_div.find('div.product-info-main div.sku.product div.value').text()
             //scrap description
             const description = main_div.find('div.description.product div.value').text()
-
 
             const medisaCheck = await MedisaApi_GetAllDataFromProduct(mpn, title.split(' ')[0])
 

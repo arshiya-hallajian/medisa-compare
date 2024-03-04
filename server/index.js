@@ -1,3 +1,4 @@
+require('dotenv').config();
 const axios = require('axios');
 axios.defaults.timeout = 10000;
 const express = require('express');
@@ -60,8 +61,9 @@ app.use('/api/csvSave', csvSave_route)
 
 
 
-server.listen(2202, ()=>{
-    console.log('server is running on 2202')
+server.listen(process.env.PORT, ()=>{
+    console.log(`server is running on ${process.env.PORT}`)
+
 });
 
 

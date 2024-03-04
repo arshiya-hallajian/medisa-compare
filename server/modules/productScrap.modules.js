@@ -47,14 +47,14 @@ const medisaSearchByMpn = async(mpn,firstname) => {
         let tmp = {}
         const result = res.data.data
 
-        console.log('length',result.length)
+        // console.log('length of data',result.length)
 
         if(result.length === 0 && result.length > 5){
             console.log('not exist')
             return null
         }else if(result.length > 0){
-            console.log('found ', result.length)
-            console.log('found ', firstname)
+            // console.log('found ', result.length)
+            // console.log('found ', firstname)
             for(let x of result){
                 if(x['name'].includes(firstname)) {
                     if (x['option_set_id'] == null) {
@@ -73,6 +73,9 @@ const medisaSearchByMpn = async(mpn,firstname) => {
                                 price: x['calculated_price']
                             }],
                         }
+
+                        // console.log("type null", tmp)
+
                         data.push(tmp)
                     } else {
                         // console.log('type variant')
@@ -126,7 +129,7 @@ const medisaSearchByMpn = async(mpn,firstname) => {
                                 })
                             }
                         }
-                        console.log(price)
+                        // console.log(price)
                         tmp = {
                             type: 'variant',
                             id: x['id'],
@@ -135,6 +138,8 @@ const medisaSearchByMpn = async(mpn,firstname) => {
                             sku: x['sku'],
                             price: price,
                         }
+                        // console.log('type variant',tmp)
+
                         data.push(tmp)
                     }
                 }
@@ -142,7 +147,7 @@ const medisaSearchByMpn = async(mpn,firstname) => {
         }
         return data
     }catch(e){
-        console.log(e.message, 'medisaSearchByApi error')
+        console.log(e.message, 'medisaSearchByMpn error')
     }
 }
 
@@ -324,4 +329,4 @@ const productScrape = async(url,io) => {
 }
 
 
-module.exports = {productScrape,findVariantById}
+module.exports = {productScrape,findVariantById, medisaSearchByMpn}

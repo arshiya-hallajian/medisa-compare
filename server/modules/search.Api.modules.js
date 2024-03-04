@@ -29,7 +29,6 @@ const MedisaApi_GetAllDataFromProduct = async (mpn, firstname) => {
 
     let data = []
 
-
     if (medisaSearchResult.length === 0 && medisaSearchResult.length > 5 && !medisaSearchResult) {
         console.log('not exist')
         return null

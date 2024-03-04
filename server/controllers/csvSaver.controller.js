@@ -3,49 +3,65 @@ const {parse} = require("csv-parse");
 const csvSave = require("../models/csvSave.model");
 const axios = require("axios");
 const cheerio = require("cheerio");
+const {medisaSearchByMpn} = require("../modules/productScrap.modules");
+const {teammed_search} = require("../modules/csv_save/teammed");
 
 
-module.exports.csvDatabaseRead = async(req, res) => {
-    try{
+module.exports.csvDatabaseRead = async (req, res) => {
+    try {
         const search = req.query.s
-        if (!search){
+        if (!search) {
             return res.status(500).send("invalid search")
         }
         const dbSearch = await csvSave.find({Medisa_sku: new RegExp(search)})
-        if (!dbSearch){
-            return res.status(404).send("not found")
+        if (!dbSearch) {
+            return res.status(404).send("not found");
         }
         res.status(200).send(dbSearch)
-    }catch (e) {
+    } catch (e) {
         console.log(e.message)
         return res.status(500).send(e.message)
     }
 }
 
+
 module.exports.csvSaver = async (req, res) => {
-    let io = req.app.get('socketIo');
+    // let io = req.app.get('socketIo');
 
-    const data = await ReadCsv(req.file)
+    const data = await ReadCsv(req.file);
 
-    const fixedData = await DataFixer(data)
+    const fixedData = await DataFixer(data);
 
-    for (const row of fixedData) {
-        try{
-            const checkExisting = await csvSave.findOne({Medisa_sku: row.Medisa_sku})
+    try {
+        for (const row of fixedData) {
+            // const checkExisting = await csvSave.findOne({Medisa_sku: row.Medisa_sku});
+            row.medisa = [];
 
-            if(!checkExisting){
-                await csvSave.create(row)
-                console.log("new data created : " , row)
-            }else{
-                await csvSave.updateOne({Medisa_sku: row.Medisa_sku},row)
+
+            for (const mpn of row.mpns) {
+                if (mpn) {
+                    const medisaResult = (await medisaSearchByMpn(mpn, row.title.split(' ')[0]));
+                    // console.log("kir",medisaResult)
+                    if (medisaResult.length > 0) {
+                        row.medisa.push(medisaResult)
+                        const teammedData = await teammed_search(mpn, medisaResult[1].name);
+                        if(teammedData) row.teammed = teammedData
+                    }
+                }
             }
 
-        }catch (e) {
-            console.log(e.message, "error in db save")
-            res.status(500).send(e.message)
+            // if(!checkExisting){
+            //     await csvSave.create(row)
+            //     console.log("new data created : " , row)
+            // }else{
+            //     await csvSave.updateOne({Medisa_sku: row.sku},row)
+            // }
         }
+        // console.log(fixedData)
+        res.status(200).send(fixedData)
+    } catch (e) {
+        console.log(e.message, "error in db save")
     }
-    res.status(200).send(fixedData)
 }
 
 
@@ -54,59 +70,58 @@ const DataFixer = (data) => {
         const fullData = []
 
 
-        data.slice(2).map((row)=> {
+        data.slice(2).map((row) => {
 
-            row.forEach((s,ind)=> {
-                if(s === ''){
+            row.forEach((s, ind) => {
+                if (s === '') {
                     row[ind] = null
                 }
             })
 
             //mpn section
-            const handler = row[0];
-            const channel = row[1];
-            const mpns = [row[2], row[3], row[4]];
-            const status = row[5];
-            const changeDate = row[6];
-            const title = row[7];
-            const serpRank = row[8];
+            const channel = row[0];
+            const mpns = [row[1], row[2], row[3]];
+            const status = row[4];
+            const changeDate = row[5];
+            const gst = row[6];
+            const image = row[7];
             //separated
-            const uom = row[9];
-            const p_p_uom = row[10]
-            const unitPerSales = row[11];
-            const unitsPack = row[12];
-            const packsCarton = row[13];
-            //medisa listing
-            const Medisa_url = row[15];
-            const Medisa_sku = row[16];
-            const Medisa_price = row[17];
+            const uom = row[8];
+            const unitsPack = row[9];
+            const packsCarton = row[10];
             //
-            const GST = row[18];
             // company info
-            const company_name = row[19];
-            const company_brand = row[20];
-            const company_abbreviation = row[21];
+            const company_name = row[11];
+            const company_brand = row[12];
+            const company_abbreviation = row[13];
+            const title = row[14]
+            const Medisa_url = row[15]
+            const serpRank = row[16]
+            const sku = row[17]
+            const unitInPackaging = row[18]
+            const stock = row[19]
+            const price = row[20]
 
             const suppliers = null;
             const competitors = null;
 
             fullData.push({
-                handler,
                 channel,
                 mpns,
                 status,
                 changeDate,
                 title,
-                serpRank,
+                image,
+                gst,
                 uom,
-                p_p_uom,
-                unitPerSales,
+                Medisa_url,
+                serpRank,
+                sku,
+                unitInPackaging,
+                stock,
+                price,
                 unitsPack,
                 packsCarton,
-                Medisa_url,
-                Medisa_sku,
-                Medisa_price,
-                GST,
                 company_name,
                 company_brand,
                 company_abbreviation,
@@ -117,8 +132,6 @@ const DataFixer = (data) => {
         resolve(fullData)
     })
 }
-
-
 
 
 const ReadCsv = (fileName) => {

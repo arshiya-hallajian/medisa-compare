@@ -6,6 +6,7 @@ import {ArchiveBoxIcon, MagnifyingGlassCircleIcon} from "@heroicons/react/24/sol
 import {MagnifyingGlassIcon} from "@heroicons/react/24/solid/index.js";
 import {Suppliers} from "./Suppliers.jsx";
 import {Competitors} from "./Competitors.jsx";
+import {io} from "socket.io-client";
 
 
 export const CsvDb = () => {
@@ -32,8 +33,13 @@ export const CsvDb = () => {
             toast.info("Receiving Data..", {autoClose: false, toastId: 85, position: "bottom-right"});
 
 
+            // const socket = await io(import.meta.env.VITE_API)
+
             const res = await axios.post(`${import.meta.env.VITE_API}/api/csvSave/`, formData);
 
+            // socket.on('connect', () => {
+            //     console.log("connected")
+            // })
 
             if (res.status === 200) {
                 setData(res.data)
@@ -170,43 +176,40 @@ export const CsvDb = () => {
                         <table className="w-full border-collapse text-slate-300">
                             <thead>
                             <tr>
-                                <th className="border" colSpan={5}>
+                                <th className="border" colSpan={6}>
                                     MPN
                                 </th>
-                                <th colSpan={7}>
 
-                                </th>
-                                <th className="border" colSpan={3}>
-                                    Medisa Listing
-                                </th>
-                                <th>
-
-                                </th>
-                                <th className="border" colSpan={3}>
+                                <th className="border" colSpan={6}>
                                     Company info
+                                </th>
+                                <th className="border" colSpan={7}>
+                                    Medisa
                                 </th>
 
                             </tr>
                             <tr className="text-lg whitespace-nowrap">
-                                <th className="border px-2">handler</th>
+                                <th className="border px-2">image</th>
                                 <th className="border px-2">channel</th>
                                 <th className="border px-2">mpns</th>
                                 <th className="border px-2">status</th>
                                 <th className="border px-2">change date</th>
-                                <th className="border px-2">title</th>
-                                <th className="border px-2">serp rank</th>
+                                <th className="border px-2">gst</th>
+                                {/*company info*/}
                                 <th className="border px-2">uom</th>
-                                <th className="border px-2">pieces per uom</th>
-                                <th className="border px-2">unit per sale</th>
                                 <th className="border px-2">units pack</th>
                                 <th className="border px-2">packs carton</th>
-                                <th className="border px-2">medisa url</th>
-                                <th className="border px-2">medisa sku</th>
-                                <th className="border px-2">medisa price</th>
-                                <th className="border px-2">GST</th>
                                 <th className="border px-2">company name</th>
                                 <th className="border px-2">company brand</th>
                                 <th className="border px-2">company abbreviation</th>
+                                {/*medisa*/}
+                                <th className="border px-2">title</th>
+                                <th className="border px-2">url</th>
+                                <th className="border px-2">Serp rank</th>
+                                <th className="border px-2">SKU</th>
+                                <th className="border px-2">units in packaging</th>
+                                <th className="border px-2">Stock</th>
+                                <th className="border px-2">Price</th>
                                 <th className="border px-2">suppliers</th>
                                 <th className="border px-2">competitors</th>
                             </tr>
@@ -215,58 +218,44 @@ export const CsvDb = () => {
                             {data ? data.map((row, index) => {
                                 return (
                                     <tr key={index}>
-                                        <td className="border px-3">
-                                            <p>{row.handler && row.handler}</p>
+
+                                        <td className="border w-48 h-20">
+                                            <p>{row.image && <img className="rounded-xl w-full h-full " src={row.image}
+                                                                  alt="product"/>}</p>
                                         </td>
                                         <td className="border">
                                             <p>{row.channel && row.channel}</p>
                                         </td>
                                         <td className="border">
-                                            {row.mpns.length > 0 && row.mpns.map((eachMpn, i) => {
-                                                    return (
-                                                        <p className="w-32" key={i}>{eachMpn}</p>
-                                                    )
-                                                }
-                                            )}
+                                            <ul className="list-decimal list-inside">
+                                                {row.mpns.length > 0 && row.mpns.map((eachMpn, i) => {
+                                                    if(eachMpn){
+                                                        return (
+                                                            <li className="w-32" key={i}>{eachMpn}</li>
+                                                        )
+                                                    }
+                                                    }
+                                                )}
+                                            </ul>
+
                                         </td>
                                         <td className="border px-3">
                                             <p>{row.status && row.status}</p>
                                         </td>
                                         <td className="border">
-                                            <p>{row.changeDate && row.changeDate}</p>
-                                        </td>
-                                        <td className="border bg-gray-700 overflow-hidden ">
-                                            <p className="break-words line-clamp-3 w-[300px]">{row.title}</p>
+                                            <p>{row.changeDate ? row.changeDate : "---"}</p>
                                         </td>
                                         <td className="border">
-                                            <p>{row.serpRank && row.serpRank}</p>
+                                            <p>{row.gst && row.gst}</p>
                                         </td>
                                         <td className="border">
                                             <p>{row.uom && row.uom}</p>
-                                        </td>
-                                        <td className="border">
-                                            <p>{row['p_p_uom'] && row['p_p_uom']}</p>
-                                        </td>
-                                        <td className="border">
-                                            <p>{row.unitPerSales && row.unitPerSales}</p>
                                         </td>
                                         <td className="border">
                                             <p>{row.unitsPack && row.unitsPack}</p>
                                         </td>
                                         <td className="border">
                                             <p>{row.packsCarton && row.packsCarton}</p>
-                                        </td>
-                                        <td className="border">
-                                            <a className="px-2 py-1 my-2 bg-amber-500 text-white rounded-xl" target="_blank" rel="noopener noreferrer" href={row.Medisa_url ? row.Medisa_url : "#"}>Click Here</a>
-                                        </td>
-                                        <td className="border">
-                                            <p>{row.Medisa_sku && row.Medisa_sku}</p>
-                                        </td>
-                                        <td className="border">
-                                            <p>{row.Medisa_price && row.Medisa_price}</p>
-                                        </td>
-                                        <td className="border">
-                                            <p>{row.GST && row.GST}</p>
                                         </td>
                                         <td className="border">
                                             <p>{row['company_name'] && row['company_name']}</p>
@@ -277,12 +266,49 @@ export const CsvDb = () => {
                                         <td className="border">
                                             <p>{row['company_abbreviation'] && row['company_abbreviation']}</p>
                                         </td>
+
+                                        <td className="border bg-gray-700 overflow-hidden ">
+                                            <p className="break-words line-clamp-3 w-[300px]">{row.title}</p>
+                                        </td>
+
+                                        <td className="border ">
+                                            <a className="flex justify-center" target="_blank" rel="noopener noreferrer"
+                                               href={row.Medisa_url ? row.Medisa_url : "#"}><p
+                                                className="px-2 w-24 py-1 my-2 bg-amber-500 text-white rounded-xl">Click
+                                                Here</p></a>
+                                        </td>
                                         <td className="border">
-                                            <button onClick={() => setSuppliers({...suppliers, isOpen: true, data: row.suppliers})} className="px-2 py-1 my-2 bg-amber-500 text-white rounded-xl">Click Here</button>
+                                            <p>{row.serpRank && row.serpRank}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.sku && row.sku}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.unitInPackaging && row.unitInPackaging}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.stock && row.stock}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.price && row.price}</p>
+                                        </td>
+
+                                        <td className="border">
+                                            <button onClick={() => setSuppliers({
+                                                ...suppliers,
+                                                isOpen: true,
+                                                data: row.suppliers
+                                            })} className="px-2 py-1 my-2 bg-amber-500 text-white rounded-xl">Click Here
+                                            </button>
                                             {/*{row.suppliers && row.suppliers}*/}
                                         </td>
                                         <td className="border">
-                                            <button onClick={() => setCompetitor({...competitor, isOpen: true, data: row.competitors})} className="px-2 py-1 my-2 bg-amber-500 text-white rounded-xl">Click Here</button>
+                                            <button onClick={() => setCompetitor({
+                                                ...competitor,
+                                                isOpen: true,
+                                                data: row.competitors
+                                            })} className="px-2 py-1 my-2 bg-amber-500 text-white rounded-xl">Click Here
+                                            </button>
                                             {/*<p>{row.competitors && row.competitors}</p>*/}
                                         </td>
                                     </tr>
