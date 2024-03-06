@@ -6,6 +6,7 @@ const cheerio = require("cheerio");
 const {medisaSearchByMpn} = require("../modules/productScrap.modules");
 const {teammed_search} = require("../modules/csv_save/teammed");
 const {brightSky_Search} = require("../modules/csv_save/brightSky");
+const {joyaMedical_search} = require("../modules/csv_save/joyaMedical");
 
 
 module.exports.csvDatabaseRead = async (req, res) => {
@@ -36,23 +37,28 @@ module.exports.csvSaver = async (req, res) => {
     try {
         for (const row of fixedData) {
             // const checkExisting = await csvSave.findOne({Medisa_sku: row.Medisa_sku});
-            row.medisa = [];
 
 
             for (const mpn of row.mpns) {
                 if (mpn) {
-                    const medisaResult = (await medisaSearchByMpn(mpn, row.title.split(' ')[0]));
-                    // console.log("kir",medisaResult)
+                    const medisaResult = await medisaSearchByMpn(mpn);
                     if (medisaResult.length > 0) {
-                        row.medisa.push(medisaResult)
+                        row.medisa = medisaResult;
 
-                        const brightSky = await brightSky_Search(mpn,medisaResult[1].name);
-                        if(brightSky) row.brightSky = brightSky
-                        const teammedData = await teammed_search(mpn, medisaResult[1].name);
-                        if(teammedData) row.teammed = teammedData
+
+                    const joyaMedical = await joyaMedical_search(mpn, medisaResult[0].name)
+
+                    // const brightSky = await brightSky_Search(mpn, medisaResult[0].name);
+                    // if(brightSky) row.brightSky = brightSky
+                    // const teammedData = await teammed_search(mpn, medisaResult[0].name);
+                    // if(teammedData) row.teammed = teammedData
+
                     }
                 }
             }
+
+            // console.log("--------------------------------")
+
 
             // if(!checkExisting){
             //     await csvSave.create(row)

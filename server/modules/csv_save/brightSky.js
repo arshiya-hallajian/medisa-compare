@@ -83,9 +83,7 @@ const brightSky_Search = async (search,name) => {
                 stockStatus,
                 unitInPackaging
             })
-
         }
-
 
         return allData;
     } catch (e) {
