@@ -154,7 +154,7 @@ const searchFunction = async (search, io = null, title = null) => {
                 title: title
             })
         }
-        console.log(fData)
+        // console.log(fData)
         return fData
     } catch (e) {
         console.log(e.message, 'error in ind search')
@@ -244,4 +244,4 @@ const indPage_price_scrap = ($, main_div) => {
     return price
 }
 
-module.exports = {searchFunction,searchController, one_page, indPage_stock_scrap, indPage_spec_scrap, indPage_price_scrap}
+module.exports = {searchFunction,searchController, one_page, indPage_stock_scrap, indPage_spec_scrap, indPage_price_scrap, All_pages_link_scrap}

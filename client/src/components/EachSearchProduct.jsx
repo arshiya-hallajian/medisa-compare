@@ -61,7 +61,7 @@ export const EachSearchProduct = ({eachProduct, updateW, listHandler, multiP, de
                                     <td className={`${eachProduct.medisa[0].editted.color}`}>
                                         <p>
                                             {
-                                                `${eachProduct.medisa[0].editted.price_label} : $${eachProduct.medisa[0].editted.medisaNormalPrice}`
+                                                `${eachProduct.medisa[0].name} : $${eachProduct.medisa[0].editted.medisaNormalPrice}`
                                             }
                                         </p>
                                     </td>

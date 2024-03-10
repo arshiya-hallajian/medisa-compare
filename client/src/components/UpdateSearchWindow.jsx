@@ -34,8 +34,8 @@ export const UpdateSearchWindow = ({data, setData}) => {
                     unregister('box')
                 }
             } else if (data.data.type === 'variant') {
-                setS_price(data.data.variants[0].editted.offer_price)
-                setB_price(data.data.variants[1].editted.offerVariantBox_price)
+                setS_price(indPrice[0].priceNumber)
+                setB_price(indPrice[1].priceNumber)
                 setValue('D_mpn', data.default_mpn)
                 setValue('name', data.data.name)
                 setValue('id', data.data.id)

@@ -90,7 +90,7 @@ export const MultiSearchProduct = ({data, setData, update}) => {
                                                     className={`w-32 border ${eachMedisa.editted.color}`}
                                                 >
                                                     <p>
-                                                        {`${eachMedisa.editted.price_label} : $${eachMedisa.editted.medisaNormalPrice}`}
+                                                        {`${eachMedisa.name} : $${eachMedisa.editted.medisaNormalPrice}`}
                                                     </p>
                                                 </td>
                                             )
