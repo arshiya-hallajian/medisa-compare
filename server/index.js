@@ -36,9 +36,14 @@ const extract_route = require('./routes/extract.route')
 const csvSave_route = require('./routes/csvSave.route')
 // const dailyReport = require("./services/dailyReport");
 
-mongoose.connect(process.env.MONGODB_URL).then(()=>{
-    console.log("connected")
-})
+
+mongoose.connect(process.env.MONGODB_URL)
+    .then(() => {
+        console.log('Connected to MongoDB');
+    })
+    .catch(( error) => {
+        console.error('error in mongodb connection:', error);
+    });
 
 
 

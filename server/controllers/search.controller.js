@@ -160,7 +160,7 @@ const searchFunction = async (search, io = null, title = null) => {
     }
 }
 
-searchController = async (req, res) => {
+const searchController = async (req, res) => {
 
     const search = req.query.search
     const io = req.app.get('socketIo')
