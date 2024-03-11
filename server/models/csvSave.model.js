@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const schema = new mongoose.Schema({
     mpn_channel : String,
     mpn_mpns : [String],
-    mpn_status : String,
+    mpn_status : { type: String, enum: ['Active', 'Discontinue'], required: true },
     mpn_changeDate: String,
     mpn_GST : String,
     mpn_image: String,
@@ -16,7 +16,7 @@ const schema = new mongoose.Schema({
     medisa_title: String,
     medisa_url: String,
     medisa_serpRank: String,
-    medisa_sku: String,
+    medisa_sku: { type: String, required: function() { return this.mpn_status === 'Active'; } },
     medisa_uip: String,
     medisa_stock: String,
     medisa_price : String,

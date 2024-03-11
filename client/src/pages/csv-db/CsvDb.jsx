@@ -14,14 +14,7 @@ export const CsvDb = () => {
     const [data, setData] = useState(null)
     const [SearchInput, setSearchInput] = useState(null)
     const [SearchMode, setSearchMode] = useState(false)
-    const [competitor, setCompetitor] = useState({
-        isOpen: false,
-        data: null
-    })
-    const [suppliers, setSuppliers] = useState({
-        isOpen: false,
-        data: null,
-    })
+    const [searchType, setSearchType] = useState("mpn")
 
 
     const onFileSubmitHandler = async (e) => {
@@ -94,7 +87,7 @@ export const CsvDb = () => {
         try {
             toast.info("Receiving Data..", {autoClose: false, toastId: 84, position: "bottom-right",});
 
-            const result = await axios.get(`${import.meta.env.VITE_API}/api/csvSave/?s=${SearchInput}`)
+            const result = await axios.get(`${import.meta.env.VITE_API}/api/csvSave/?s=${SearchInput}&type=${searchType}`)
             console.log(result.data)
             setData(result.data)
             toast.update(84, {
@@ -133,23 +126,27 @@ export const CsvDb = () => {
             <div
                 className={`h-screen w-full overflow-auto bg-gray-700 relative scrollbar-thin scrollbar-thumb-red-600 pt-10`}>
                 <ToastContainer/>
-                {suppliers.isOpen && <Suppliers suppliers={setSuppliers}/>}
-                {competitor.isOpen && <Competitors competitors={setCompetitor}/>}
-                <div className="mb-14 text-white flex gap-4 justify-center items-center overflow-hidden">
 
+                <div className="mb-14 text-white flex gap-4 justify-center items-center overflow-hidden">
                     <div
                         className={` w-screen transition duration-700 md:w-full justify-center items-center py-2 md:py-7 ${SearchMode ? "flex opacity-100 translate-x-0" : "hidden opacity-0  translate-x-[100rem] "}`}>
-                        <form onSubmit={onSearchSubmitHandler}>
-                            <div className="flex bg-white rounded-full overflow-hidden">
-                                <input type="text" onChange={onSearchChange}
-                                       className=" md:w-96 px-3 border-0 outline-none text-black" name="search"
-                                       placeholder="search your product here"/>
-                                <button
-                                    className="bg-amber-400 rounded-full text-black p-1 md:p-2 transition hover:scale-125 hover:animate-pulse active:bg-amber-600">
-                                    <MagnifyingGlassIcon className="w-8"/>
-                                </button>
+                        <div className="flex flex-col">
+                            <form onSubmit={onSearchSubmitHandler}>
+                                <div className="flex bg-white rounded-full overflow-hidden">
+                                    <input type="text" onChange={onSearchChange}
+                                           className=" md:w-96 px-3 border-0 outline-none text-black" name="search"
+                                           placeholder="search your product here"/>
+                                    <button
+                                        className="bg-amber-400 rounded-full text-black p-1 md:p-2 transition hover:scale-125 hover:animate-pulse active:bg-amber-600">
+                                        <MagnifyingGlassIcon className="w-8"/>
+                                    </button>
+                                </div>
+                            </form>
+                            <div className="flex gap-5">
+                                <div className={`cursor-pointer ${searchType === "mpn" ? "text-red-500" : ""}`} onClick={()=>setSearchType("mpn")}>mpn</div>
+                                <div className={`cursor-pointer ${searchType === "mpn" ? "" : "text-red-500"}`} onClick={()=>setSearchType("brand")}>brand</div>
                             </div>
-                        </form>
+                        </div>
                         <ArchiveBoxIcon
                             className={` ml-4 flex-none h-12 w-12 transition duration-700 ${SearchMode ? "block opacity-100 " : "hidden opacity-0 translate-x-[100rem]"}`}
                             onClick={() => setSearchMode(false)}/>
@@ -183,8 +180,29 @@ export const CsvDb = () => {
                                 <th className="border" colSpan={6}>
                                     Company info
                                 </th>
-                                <th className="border" colSpan={7}>
+                                <th className="border" colSpan={6}>
                                     Medisa
+                                </th>
+                                <th className="border" colSpan={6}>
+                                    independence(supplier)
+                                </th>
+                                <th className="border" colSpan={5}>
+                                    teammed(supplier)
+                                </th>
+                                <th className="border" colSpan={5}>
+                                    main(supplier)
+                                </th>
+                                <th className="border" colSpan={4}>
+                                    bright sky(competitor)
+                                </th>
+                                <th className="border" colSpan={4}>
+                                    joya medical(competitor)
+                                </th>
+                                <th className="border" colSpan={4}>
+                                    alpha medical(competitor)
+                                </th>
+                                <th className="border" colSpan={4}>
+                                    medshop(competitor)
                                 </th>
 
                             </tr>
@@ -204,14 +222,50 @@ export const CsvDb = () => {
                                 <th className="border px-2">company abbreviation</th>
                                 {/*medisa*/}
                                 <th className="border px-2">title</th>
-                                <th className="border px-2">url</th>
                                 <th className="border px-2">Serp rank</th>
                                 <th className="border px-2">SKU</th>
                                 <th className="border px-2">units in packaging</th>
                                 <th className="border px-2">Stock</th>
                                 <th className="border px-2">Price</th>
-                                <th className="border px-2">suppliers</th>
-                                <th className="border px-2">competitors</th>
+                                {/*ind*/}
+                                <th className="border px-2">title</th>
+                                <th className="border px-2">SKU</th>
+                                <th className="border px-2">units in packaging</th>
+                                <th className="border px-2">stock</th>
+                                <th className="border px-2">sell price</th>
+                                <th className="border px-2">buy price</th>
+                                {/*teammed*/}
+                                <th className="border px-2">title</th>
+                                <th className="border px-2">units in packaging</th>
+                                <th className="border px-2">stock</th>
+                                <th className="border px-2">sell price</th>
+                                <th className="border px-2">buy price</th>
+                                {/*main supplier*/}
+                                <th className="border px-2">title</th>
+                                <th className="border px-2">units in packaging</th>
+                                <th className="border px-2">stock</th>
+                                <th className="border px-2">sell price</th>
+                                <th className="border px-2">buy price</th>
+                                {/*bright sky*/}
+                                <th className="border px-2">title</th>
+                                <th className="border px-2">stock</th>
+                                <th className="border px-2">units in packaging</th>
+                                <th className="border px-2">price</th>
+                                {/*joya medical*/}
+                                <th className="border px-2">title</th>
+                                <th className="border px-2">stock</th>
+                                <th className="border px-2">units in packaging</th>
+                                <th className="border px-2">price</th>
+                                {/*alpha medical*/}
+                                <th className="border px-2">title</th>
+                                <th className="border px-2">stock</th>
+                                <th className="border px-2">units in packaging</th>
+                                <th className="border px-2">price</th>
+                                {/*med shop*/}
+                                <th className="border px-2">title</th>
+                                <th className="border px-2">stock</th>
+                                <th className="border px-2">units in packaging</th>
+                                <th className="border px-2">price</th>
                             </tr>
                             </thead>
                             <tbody className="text-center">
@@ -220,42 +274,43 @@ export const CsvDb = () => {
                                     <tr key={index}>
 
                                         <td className="border w-48 h-20">
-                                            <p>{row.image && <img className="rounded-xl w-full h-full " src={row.image}
-                                                                  alt="product"/>}</p>
+                                            <p>{row.mpn_image &&
+                                                <img className="rounded-xl w-full h-full " src={row.mpn_image}
+                                                     alt="product"/>}</p>
                                         </td>
                                         <td className="border">
-                                            <p>{row.channel && row.channel}</p>
+                                            <p>{row.mpn_channel && row.mpn_channel}</p>
                                         </td>
                                         <td className="border">
                                             <ul className="list-decimal list-inside">
-                                                {row.mpns.length > 0 && row.mpns.map((eachMpn, i) => {
-                                                    if(eachMpn){
-                                                        return (
-                                                            <li className="w-32" key={i}>{eachMpn}</li>
-                                                        )
-                                                    }
+                                                {row.mpn_mpns.length > 0 && row.mpn_mpns.map((eachMpn, i) => {
+                                                        if (eachMpn) {
+                                                            return (
+                                                                <li className="w-32" key={i}>{eachMpn}</li>
+                                                            )
+                                                        }
                                                     }
                                                 )}
                                             </ul>
 
                                         </td>
                                         <td className="border px-3">
-                                            <p>{row.status && row.status}</p>
+                                            <p>{row.mpn_status && row.mpn_status}</p>
                                         </td>
                                         <td className="border">
-                                            <p>{row.changeDate ? row.changeDate : "---"}</p>
+                                            <p>{row.mpn_changeDate ? row.mpn_changeDate : "---"}</p>
                                         </td>
                                         <td className="border">
-                                            <p>{row.gst && row.gst}</p>
+                                            <p>{row.mpn_gst && row.mpn_gst}</p>
                                         </td>
                                         <td className="border">
-                                            <p>{row.uom && row.uom}</p>
+                                            <p>{row.company_uom && row.company_uom}</p>
                                         </td>
                                         <td className="border">
-                                            <p>{row.unitsPack && row.unitsPack}</p>
+                                            <p>{row.company_unitsPack && row.company_unitsPack}</p>
                                         </td>
                                         <td className="border">
-                                            <p>{row.packsCarton && row.packsCarton}</p>
+                                            <p>{row.company_packsCarton && row.company_packsCarton}</p>
                                         </td>
                                         <td className="border">
                                             <p>{row['company_name'] && row['company_name']}</p>
@@ -268,49 +323,172 @@ export const CsvDb = () => {
                                         </td>
 
                                         <td className="border bg-gray-700 overflow-hidden ">
-                                            <p className="break-words line-clamp-3 w-[300px]">{row.title}</p>
-                                        </td>
-
-                                        <td className="border ">
-                                            <a className="flex justify-center" target="_blank" rel="noopener noreferrer"
-                                               href={row.Medisa_url ? row.Medisa_url : "#"}><p
-                                                className="px-2 w-24 py-1 my-2 bg-amber-500 text-white rounded-xl">Click
-                                                Here</p></a>
-                                        </td>
-                                        <td className="border">
-                                            <p>{row.serpRank && row.serpRank}</p>
-                                        </td>
-                                        <td className="border">
-                                            <p>{row.sku && row.sku}</p>
-                                        </td>
-                                        <td className="border">
-                                            <p>{row.unitInPackaging && row.unitInPackaging}</p>
-                                        </td>
-                                        <td className="border">
-                                            <p>{row.stock && row.stock}</p>
-                                        </td>
-                                        <td className="border">
-                                            <p>{row.price && row.price}</p>
+                                            <a className="underline text-blue-400"
+                                               href={row.medisa_url ? row.medisa_url : "#"} target="_blank"
+                                               rel="noopener noreferrer">
+                                                <p className="break-words line-clamp-3 w-[300px]">{row.medisa_title && row.medisa_title}</p>
+                                            </a>
                                         </td>
 
                                         <td className="border">
-                                            <button onClick={() => setSuppliers({
-                                                ...suppliers,
-                                                isOpen: true,
-                                                data: row.suppliers
-                                            })} className="px-2 py-1 my-2 bg-amber-500 text-white rounded-xl">Click Here
-                                            </button>
-                                            {/*{row.suppliers && row.suppliers}*/}
+                                            <p>{row.medisa_serpRank && row.medisa_serpRank}</p>
                                         </td>
                                         <td className="border">
-                                            <button onClick={() => setCompetitor({
-                                                ...competitor,
-                                                isOpen: true,
-                                                data: row.competitors
-                                            })} className="px-2 py-1 my-2 bg-amber-500 text-white rounded-xl">Click Here
-                                            </button>
-                                            {/*<p>{row.competitors && row.competitors}</p>*/}
+                                            <p>{row.medisa_sku && row.medisa_sku}</p>
                                         </td>
+                                        <td className="border">
+                                            <p>{row.medisa_unitInPackaging && row.medisa_unitInPackaging}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.medisa_stock && row.medisa_stock}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.medisa_price && row.medisa_price}</p>
+                                        </td>
+
+                                        {/*independence*/}
+                                        <td className="border bg-gray-700 overflow-hidden ">
+                                            <a className="underline text-blue-400"
+                                               href={row.ind_url ? row.ind_url : "#"} target="_blank"
+                                               rel="noopener noreferrer">
+                                                <p className="break-words line-clamp-3 w-[300px]">{row.ind_title && row.ind_title}</p>
+                                            </a>
+                                        </td>
+
+                                        <td className="border">
+                                            <p>{row.ind_sku && row.ind_sku}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.ind_uip && row.ind_uip}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.ind_stock && row.ind_stock}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.ind_sellPrice && row.ind_sellPrice}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.ind_buyPrice && row.ind_buyPrice}</p>
+                                        </td>
+
+                                        {/*teammed*/}
+                                        <td className="border bg-gray-700 overflow-hidden ">
+                                            <a className="underline text-blue-400"
+                                               href={row.teammed_url ? row.teammed_url : "#"} target="_blank"
+                                               rel="noopener noreferrer">
+                                                <p className="break-words line-clamp-3 w-[300px]">{row.teammed_title && row.teammed_title}</p>
+                                            </a>
+                                        </td>
+
+                                        <td className="border">
+                                            <p>{row.teammed_uip && row.teammed_uip}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.teammed_stock && row.teammed_stock}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.teammed_sellPrice && row.teammed_sellPrice}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.teammed_buyPrice && row.teammed_buyPrice}</p>
+                                        </td>
+
+
+                                        {/*main supplier*/}
+                                        <td className="border bg-gray-700 overflow-hidden ">
+                                            <a className="underline text-blue-400"
+                                               href={row.main_url ? row.main_url : "#"} target="_blank"
+                                               rel="noopener noreferrer">
+                                                <p className="break-words line-clamp-3 w-[300px]">{row.main_title && row.main_title}</p>
+                                            </a>
+                                        </td>
+
+                                        <td className="border">
+                                            <p>{row.main_uip && row.main_uip}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.main_stock && row.main_stock}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.main_sellPrice && row.main_sellPrice}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.main_buyPrice && row.main_buyPrice}</p>
+                                        </td>
+
+
+                                        {/*bright sky*/}
+                                        <td className="border bg-gray-700 overflow-hidden ">
+                                            <a className="underline text-blue-400"
+                                               href={row.brightSky_url ? row.brightSky_url : "#"} target="_blank"
+                                               rel="noopener noreferrer">
+                                                <p className="break-words line-clamp-3 w-[300px]">{row.brightSky_title && row.brightSky_title}</p>
+                                            </a>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.brightSky_uip && row.brightSky_uip}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.brightSky_stock && row.brightSky_stock}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.brightSky_price && row.brightSky_price}</p>
+                                        </td>
+
+                                        {/*joya medical*/}
+                                        <td className="border bg-gray-700 overflow-hidden ">
+                                            <a className="underline text-blue-400"
+                                               href={row.joya_url ? row.joya_url : "#"} target="_blank"
+                                               rel="noopener noreferrer">
+                                                <p className="break-words line-clamp-3 w-[300px]">{row.joya_title && row.joya_title}</p>
+                                            </a>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.joya_uip && row.joya_uip}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.joya_stock && row.joya_stock}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.joya_price && row.joya_price}</p>
+                                        </td>
+
+                                        {/*alpha medical*/}
+                                        <td className="border bg-gray-700 overflow-hidden ">
+                                            <a className="underline text-blue-400"
+                                               href={row.alpha_url ? row.alpha_url : "#"} target="_blank"
+                                               rel="noopener noreferrer">
+                                                <p className="break-words line-clamp-3 w-[300px]">{row.alpha_title && row.alpha_title}</p>
+                                            </a>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.alpha_uip && row.alpha_uip}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.alpha_stock && row.alpha_stock}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.alpha_price && row.alpha_price}</p>
+                                        </td>
+
+                                        {/*med shop*/}
+                                        <td className="border bg-gray-700 overflow-hidden ">
+                                            <a className="underline text-blue-400"
+                                               href={row.medShop_url ? row.medShop_url : "#"} target="_blank"
+                                               rel="noopener noreferrer">
+                                                <p className="break-words line-clamp-3 w-[300px]">{row.medShop_title && row.medShop_title}</p>
+                                            </a>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.medShop_uip && row.medShop_uip}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.medShop_stock && row.medShop_stock}</p>
+                                        </td>
+                                        <td className="border">
+                                            <p>{row.medShop_price && row.medShop_price}</p>
+                                        </td>
+
                                     </tr>
                                 )
                             }) : <tr>
