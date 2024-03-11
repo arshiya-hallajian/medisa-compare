@@ -130,8 +130,6 @@ const searchFunction = async (search, io = null, title = null) => {
             }
 
 
-
-
             if (io) {
                 io.emit('search-loader', {
                     status: "loading",

@@ -84,7 +84,7 @@ const MedisaApi_GetAllDataFromProduct = async (mpn, firstname) => {
                         }
                     }
 
-                    console.log(price)
+                    // console.log(price)
                     data.push({
                         type: 'variant',
                         id: x['id'],

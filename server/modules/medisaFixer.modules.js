@@ -11,21 +11,18 @@ const medisaEditor = (medisaData, PriceDifferenceCounter, StockCounter) => {
             }
 
             if (medisaData.medisa && eachMedisa.type === "normal") {
+                let medisaNormalPrice;
+                let priceLabel;
+                let eachColor;
 
-                medisaNormalPrice = eachMedisa.prices['calc_price']
-                // medisaName = eachMedisa.name.split(' ').slice(0, 3).join(' ');
+                medisaNormalPrice = eachMedisa.prices['calc_price'];
 
                 const name = eachMedisa.name.toLowerCase();
                 if (name.includes("each")) {
-                    price_label = "each";
-                    if (
-                        medisaData.price[0] &&
-                        (medisaData.price[0].quantity.includes("Unit") || medisaData.price[0].quantity.includes("Units"))
-                    ) {
-                        const fixed_price = medisaData.price[0].priceNumber.replace("$", "").replace(",", "");
-                        // offer_price = eachOffer(medisaNormalPrice, parseFloat(fixed_price));
-                        eachColor = calculate_priceColor(medisaNormalPrice, parseFloat(fixed_price), false)
-                        // offer2_price = percent30(medisaNormalPrice, parseFloat(fixed_price));
+                    priceLabel = "each";
+                    if (medisaData.price[0] && (medisaData.price[0].quantity.includes("Unit") || medisaData.price[0].quantity.includes("Units"))) {
+                        const fixedPrice = parseFloat(medisaData.price[0].priceNumber.replace("$", "").replace(",", ""));
+                        eachColor = calculate_priceColor(medisaNormalPrice, fixedPrice, false);
                     } else {
                         offer_price = "first no";
                     }
@@ -39,56 +36,56 @@ const medisaEditor = (medisaData, PriceDifferenceCounter, StockCounter) => {
                     name.includes("jar") ||
                     name.includes("jars")
                 ) {
-                    price_label = eachMedisa.name;
-                    if (medisaData.price[1]) {
-                        const fixed_price = medisaData.price[1].priceNumber.replace("$", "").replace(",", "");
-                        eachColor = calculate_priceColor(medisaNormalPrice, parseFloat(fixed_price), false)
-                        // offer_price = BoxOffer(medisaNormalPrice, parseFloat(fixed_price));
-                        // offer2_price = percent30(medisaNormalPrice, parseFloat(fixed_price));
+                    priceLabel = eachMedisa.name;
+                    const priceIndex = medisaData.price.findIndex(price => price.title.toLowerCase().includes("box") || price.title.toLowerCase().includes("pack") || price.title.toLowerCase().includes("pcs") || price.title.toLowerCase().includes("pkt") || price.title.toLowerCase().includes("pkts") || price.title.toLowerCase().includes("carton") || price.title.toLowerCase().includes("jar") || price.title.toLowerCase().includes("jars"));
+
+                    if (priceIndex !== -1) {
+                        const fixedPrice = parseFloat(medisaData.price[priceIndex].priceNumber.replace("$", "").replace(",", ""));
+                        eachColor = calculate_priceColor(medisaNormalPrice, fixedPrice, false);
                     } else {
-                        const fixed_price = medisaData.price[0].priceNumber.replace("$", "").replace(",", "");
-                        eachColor = calculate_priceColor(medisaNormalPrice, parseFloat(fixed_price), false)
-                        // offer_price = BoxOffer(medisaNormalPrice, parseFloat(fixed_price));
-                        // offer2_price = percent30(medisaNormalPrice, parseFloat(fixed_price));
+                        const fixedPrice = parseFloat(medisaData.price[0].priceNumber.replace("$", "").replace(",", ""));
+                        eachColor = calculate_priceColor(medisaNormalPrice, fixedPrice, false);
                     }
                 } else {
-                    price_label = "no-label";
+                    priceLabel = "no-label";
                 }
-                // let color = calculateOfferPrice(medisaNormalPrice, offer_price, offer2_price, false)
-                // let color = calculate_priceColor(medisaNormalPrice, o)
+
                 if (eachColor.color === "text-red-600" || eachColor.color === "bg-red-600") {
-                    PriceDifferenceCounter.push(medisaData.mpn)
+                    PriceDifferenceCounter.push(medisaData.mpn);
                 }
+
                 eachMedisa.editted = {
-                    price_label,
+                    priceLabel,
                     medisaNormalPrice,
-                    suggestPrice : eachColor.suggestedPrice,
+                    suggestPrice: eachColor.suggestedPrice,
                     color: eachColor.color
-                }
-
+                };
             } else if (eachMedisa && eachMedisa.type === "variant") {
-                let fixedEach_price = null, fixedBox_price = null;
+                let fixedEachPrice = null;
+                let fixedBoxPrice = null;
 
-                if (medisaData.price[0] && medisaData.price[1]) {
-                    fixedEach_price = parseFloat(medisaData.price[0].priceNumber.replace("$", "").replace(",", ""));
-                    fixedBox_price = parseFloat(medisaData.price[1].priceNumber.replace("$", "").replace(",", ""));
-                } else if (medisaData.price[0] && (medisaData.price[0].quantity.includes("Unit") || medisaData.price[0].quantity.includes("Units"))) {
-                    fixedEach_price = parseFloat(medisaData.price[0].priceNumber.replace("$", "").replace(",", ""));
-                } else if (medisaData.price[0] && (!medisaData.price[0].quantity.includes("Unit") || !medisaData.price[0].quantity.includes("Units"))) {
-                    fixedBox_price = parseFloat(medisaData.price[0].priceNumber.replace("$", "").replace(",", ""));
+                const boxKeywords = ["box", "carton", "pack", "jar", "jars", "pcs", "pkt", "pkts"]; // Add more keywords as needed
+
+                if (medisaData.price.length === 2) {
+                    fixedEachPrice = parseFloat(medisaData.price[0].priceNumber.replace("$", "").replace(",", ""));
+                    fixedBoxPrice = parseFloat(medisaData.price[1].priceNumber.replace("$", "").replace(",", ""));
+                } else if (medisaData.price.length === 1) {
+                    if (boxKeywords.some(keyword => medisaData.price[0].title.toLowerCase().includes(keyword))) {
+                        fixedBoxPrice = parseFloat(medisaData.price[0].priceNumber.replace("$", "").replace(",", ""));
+                    } else {
+                        fixedEachPrice = parseFloat(medisaData.price[0].priceNumber.replace("$", "").replace(",", ""));
+                    }
                 }
 
                 if (eachMedisa.variants && eachMedisa.variants.length > 0) {
-                    if (eachMedisa.variants[0].prices['calc_price']) {
-                        eachVariantPrice = eachMedisa.variants[0].prices['calc_price'];
-                        // offer_price = eachOffer(eachVariantPrice, fixedEach_price)
-                        // offer2_price = percent30(eachVariantPrice, fixedEach_price)
-                        // let color = calculateOfferPrice(eachVariantPrice, offer_price, offer2_price, true)
-                        eachColor = calculate_priceColor(eachVariantPrice, fixedEach_price,true)
+                    let eachVariantPrice = eachMedisa.variants[0].prices['calc_price'];
+                    if (fixedEachPrice) {
+
+                        let eachColor = calculate_priceColor(eachVariantPrice, fixedEachPrice, true);
 
                         if (eachColor.color === "text-red-600" || eachColor.color === "bg-red-600") {
                             if (!PriceDifferenceCounter.includes(medisaData.mpn)) {
-                                PriceDifferenceCounter.push(medisaData.mpn)
+                                PriceDifferenceCounter.push(medisaData.mpn);
                             }
                         }
 
@@ -96,30 +93,43 @@ const medisaEditor = (medisaData, PriceDifferenceCounter, StockCounter) => {
                             eachVariantPrice,
                             suggestPrice: eachColor.suggestedPrice,
                             color: eachColor.color
-                        }
+                        };
+                    } else {
+                        eachMedisa.variants[0].editted = {
+                            eachVariantPrice,
+                            suggestPrice: null,
+                            color: "text-orange-600",
+                        };
                     }
-                    // offerVariantBox_price
+
                     if (eachMedisa.variants.length === 2) {
-                        BoxVariantPrice = eachMedisa.variants[1].prices['calc_price'];
-                        // offerVariantBox_price = BoxOffer(BoxVariantPrice, fixedBox_price)
-                        // offer2VariantBox_price = percent30(BoxVariantPrice, fixedBox_price)
-                        let boxColor = calculate_priceColor(BoxVariantPrice, fixedBox_price, true)
+                        let boxVariantPrice = eachMedisa.variants[1].prices['calc_price'];
 
-                        if (boxColor.color === "text-red-600" || boxColor.color === "bg-red-600") {
-                            if (!PriceDifferenceCounter.includes(medisaData.mpn)) {
-                                PriceDifferenceCounter.push(medisaData.mpn)
+                        if (fixedBoxPrice) {
+                            let boxColor = calculate_priceColor(boxVariantPrice, fixedBoxPrice, true);
+
+                            if (boxColor.color === "text-red-600" || boxColor.color === "bg-red-600") {
+                                if (!PriceDifferenceCounter.includes(medisaData.mpn)) {
+                                    PriceDifferenceCounter.push(medisaData.mpn);
+                                }
                             }
-                        }
 
-                        eachMedisa.variants[1].editted = {
-                            BoxVariantPrice,
-                            suggestPrice: boxColor.suggestedPrice,
-                            color: boxColor.color,
+                            eachMedisa.variants[1].editted = {
+                                boxVariantPrice,
+                                suggestPrice: boxColor.suggestedPrice,
+                                color: boxColor.color,
+                            };
+                        } else {
+                            eachMedisa.variants[1].editted = {
+                                boxVariantPrice,
+                                suggestPrice: null,
+                                color: "text-orange-600",
+                            };
                         }
                     }
                 }
-
             }
+
         }
         resolve(medisaData)
     })
@@ -127,71 +137,22 @@ const medisaEditor = (medisaData, PriceDifferenceCounter, StockCounter) => {
 
 
 const calculate_priceColor = (productPrice, independencePrice, variant) => {
-    console.log("parameter check: ",productPrice,independencePrice)
+    // console.log("parameter check: ", productPrice, independencePrice)
     if (typeof productPrice === 'number' && typeof independencePrice === 'number') {
         const newPrice = (productPrice * 3) / 100;
         const discountedPrice = independencePrice - newPrice;
         const priceDifference = productPrice - discountedPrice;
 
 
-        if ( priceDifference <= (independencePrice * 0.03)) {
-            return {color: (variant ? "text-green-600" : "bg-green-600"),suggestedPrice: null }; // Medisa price is between 0% and 2% under the independence price
+        if (priceDifference <= (independencePrice * 0.03)) {
+            return {color: (variant ? "text-green-600" : "bg-green-600"), suggestedPrice: null}; // Medisa price is between 0% and 2% under the independence price
         } else {
-            const suggestedPrice = (productPrice - (independencePrice * 0.03)) ; // Suggested price when Medisa price is below 0%
+            const suggestedPrice = (productPrice - (independencePrice * 0.03)); // Suggested price when Medisa price is below 0%
             return {color: (variant ? "text-red-600" : "bg-red-600"), suggestedPrice}; // Medisa price is under 0% from the independence price
         }
     } else {
         console.log('PriceError sec', productPrice, independencePrice);
         return null;
-    }
-}
-
-
-const calculateOfferPrice = (price, offerPrice, offer2Price, variant) => {
-    if (offer2Price.minPrice && offer2Price.maxPrice) {
-        if (price > offer2Price.maxPrice || price < offer2Price.minPrice) {
-            return variant ? "text-red-600" : "bg-red-600";
-        } else if (price <= offerPrice) {
-            return variant ? "text-green-600" : "bg-green-600";
-        } else {
-            return variant ? "text-orange-600" : "bg-orange-600";
-        }
-    } else {
-        return ""
-    }
-};
-
-const eachOffer = (productPrice, indipendencePrice) => {
-    if (typeof (productPrice) === 'number' && typeof (indipendencePrice) === 'number') {
-        const newPrice = productPrice / 100
-        const sPrice = indipendencePrice - newPrice
-        return parseFloat(sPrice.toFixed(2))
-    } else {
-        console.log('PriceError')
-        return null
-    }
-}
-
-const BoxOffer = (productPrice, indipendencePrice) => {
-    if (typeof (productPrice) === 'number' && typeof (indipendencePrice) === 'number') {
-        const newPrice = (productPrice * 2) / 100
-        const sPrice = indipendencePrice - newPrice
-        return parseFloat(sPrice.toFixed(2))
-    } else {
-        console.log('PriceError sec', productPrice, indipendencePrice)
-        return null
-    }
-}
-
-const percent30 = (productPrice, indipendencePrice) => {
-    if (typeof (productPrice) === 'number' && typeof (indipendencePrice) === 'number') {
-        const newPrice = (productPrice * 30) / 100
-        const maxPrice = parseFloat((indipendencePrice + newPrice).toFixed(2))
-        const minPrice = parseFloat((indipendencePrice - newPrice).toFixed(2))
-        return {minPrice, maxPrice}
-    } else {
-        console.log('PriceError 30', productPrice, indipendencePrice)
-        return {minPrice: null, maxPrice: null}
     }
 }
 

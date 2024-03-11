@@ -80,7 +80,7 @@ export const EachSearchProduct = ({eachProduct, updateW, listHandler, multiP, de
                                             {
                                                 eachProduct.medisa[0].variants[1] &&
                                                 <div className={`${eachProduct.medisa[0].variants[1].editted.color}`}>
-                                                    {`${eachProduct.medisa[0].variants[1].label} : $${eachProduct.medisa[0].variants[1].editted.BoxVariantPrice}`}
+                                                    {`${eachProduct.medisa[0].variants[1].label} : $${eachProduct.medisa[0].variants[1].editted.boxVariantPrice}`}
                                                 </div>
                                             }
                                         </td> :
