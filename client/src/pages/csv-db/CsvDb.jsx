@@ -4,12 +4,10 @@ import {useState} from "react";
 import axios from "axios";
 import {ArchiveBoxIcon, MagnifyingGlassCircleIcon} from "@heroicons/react/24/solid";
 import {MagnifyingGlassIcon} from "@heroicons/react/24/solid/index.js";
-import {Suppliers} from "./Suppliers.jsx";
-import {Competitors} from "./Competitors.jsx";
-import {io} from "socket.io-client";
 
 
 export const CsvDb = () => {
+
     const [file, setFile] = useState(null)
     const [data, setData] = useState(null)
     const [SearchInput, setSearchInput] = useState(null)
@@ -28,11 +26,8 @@ export const CsvDb = () => {
 
             // const socket = await io(import.meta.env.VITE_API)
 
-            const res = await axios.post(`${import.meta.env.VITE_API}/api/csvSave/`, formData);
+            const res = await axios.post(`${import.meta.env.VITE_API2}/api/csvSave/`, formData);
 
-            // socket.on('connect', () => {
-            //     console.log("connected")
-            // })
 
             if (res.status === 200) {
                 setData(res.data)
@@ -51,7 +46,6 @@ export const CsvDb = () => {
 
                 console.log(res.data)
             }
-
         } catch (e) {
             console.log(e)
             toast.update(85, {
@@ -87,7 +81,7 @@ export const CsvDb = () => {
         try {
             toast.info("Receiving Data..", {autoClose: false, toastId: 84, position: "bottom-right",});
 
-            const result = await axios.get(`${import.meta.env.VITE_API}/api/csvSave/?s=${SearchInput}&type=${searchType}`)
+            const result = await axios.get(`${import.meta.env.VITE_API2}/api/csvSave/?s=${SearchInput}&type=${searchType}`)
             console.log(result.data)
             setData(result.data)
             toast.update(84, {

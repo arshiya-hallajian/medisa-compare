@@ -1,11 +1,12 @@
 import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
 import axios from "axios";
+import {Bounce, toast, ToastContainer} from "react-toastify";
 
 export const UpdateSearchWindow = ({data, setData}) => {
     const [images, setImages] = useState({
-        each:null,
-        box:null
+        each: null,
+        box: null
     });
     const [s_price, setS_price] = useState(null)
     const [B_price, setB_price] = useState(null)
@@ -15,82 +16,101 @@ export const UpdateSearchWindow = ({data, setData}) => {
     let indPrice = data.indPrice;
 
     useEffect(() => {
-        if (data.data) {
-            console.log(data)
-            if (data.data.type === 'normal') {
-                // setProduct(data.data)
-                setS_price(data.data.editted.offer_price)
-                if (data.data) {
-                    setValue('id', data.data.id)
-                    setValue('type', 'normal')
+            if (data.data) {
+                console.log(data)
+                if (data.data.type === 'normal') {
+                    // setProduct(data.data)
+
+                    if (data.data.editted.suggestPrice) {
+                        setS_price(data.data.editted.suggestPrice)
+                    }
+                    if (data.data) {
+                        setValue('id', data.data.id)
+                        setValue('type', 'normal')
+                        setValue('name', data.data.name)
+                        setValue('mpn', data.data.mpn)
+                        setValue('sku', data.data.sku)
+                        setValue('price', data.data.prices['price'])
+                        setValue('sale_price', data.data.prices['sale_price'])
+                        setValue('calc_price', data.data.prices['calc_price'])
+                        unregister('each')
+                        unregister('box')
+                    }
+                } else if (data.data.type === 'variant') {
+                    if (data.data.variants[0].editted.suggestPrice) {
+                        setS_price(data.data.variants[0].editted.suggestPrice.toFixed(2))
+                    }
+                    setValue('D_mpn', data.default_mpn)
                     setValue('name', data.data.name)
+                    setValue('id', data.data.id)
                     setValue('mpn', data.data.mpn)
                     setValue('sku', data.data.sku)
-                    setValue('price', data.data.prices['price'])
-                    setValue('cost_price', data.data.prices['cost_price'])
-                    setValue('sale_price', data.data.prices['sale_price'])
-                    setValue('calc_price', data.data.prices['calc_price'])
-                    unregister('each')
-                    unregister('box')
-                }
-            } else if (data.data.type === 'variant') {
-                setS_price(indPrice[0].priceNumber)
-                setB_price(indPrice[1].priceNumber)
-                setValue('D_mpn', data.default_mpn)
-                setValue('name', data.data.name)
-                setValue('id', data.data.id)
-                setValue('mpn', data.data.mpn)
-                setValue('sku', data.data.sku)
-                unregister('price')
-                unregister('calc_price')
-                unregister('cost_price')
-                unregister('sale_price')
-                setValue('type', 'variant')
+                    unregister('price')
+                    unregister('calc_price')
+                    unregister('sale_price')
+                    setValue('type', 'variant')
 
-                setValue('each.price', data.data.variants[0].prices['price'])
-                setValue('each.cost_price', data.data.variants[0].prices['cost_price'])
-                setValue('each.sale_price', data.data.variants[0].prices['sale_price'])
-                setValue('each.calc_price', data.data.variants[0].prices['calc_price'])
-                setValue('each.sku', data.data.variants[0].sku)
-                if (data.data.variants[0].image !== '') {
-
-                    setImages(prev => ({
-                        ...prev,
-                        each: data.data.variants[0].image
-                    }))
-                }
-                if (data.data.variants[1]) {
-                    if (data.data.variants[1].image !== '') {
+                    setValue('each.price', data.data.variants[0].prices['price'])
+                    setValue('each.sale_price', data.data.variants[0].prices['sale_price'])
+                    setValue('each.calc_price', data.data.variants[0].prices['calc_price'])
+                    setValue('each.sku', data.data.variants[0].sku)
+                    if (data.data.variants[0].image !== '') {
 
                         setImages(prev => ({
                             ...prev,
-                            box: data.data.variants[1].image
+                            each: data.data.variants[0].image
                         }))
                     }
-                    setValue('box.price', data.data.variants[1].prices['price'])
-                    setValue('box.cost_price', data.data.variants[1].prices['cost_price'])
-                    setValue('box.sale_price', data.data.variants[1].prices['sale_price'])
-                    setValue('box.calc_price', data.data.variants[1].prices['calc_price'])
-                    setValue('box.sku', data.data.variants[1].sku)
-                } else {
-                    setValue('box', null)
+                    if (data.data.variants[1]) {
+                        if (data.data.variants[1].image !== '') {
+
+                            setImages(prev => ({
+                                ...prev,
+                                box: data.data.variants[1].image
+                            }))
+                        }
+                        if (data.data.variants[1].editted.suggestPrice) {
+                            setB_price(data.data.variants[1].editted.suggestPrice.toFixed(2))
+                        }
+                        setValue('box.price', data.data.variants[1].prices['price'])
+                        setValue('box.sale_price', data.data.variants[1].prices['sale_price'])
+                        setValue('box.calc_price', data.data.variants[1].prices['calc_price'])
+                        setValue('box.sku', data.data.variants[1].sku)
+                    } else {
+                        setValue('box', null)
+                    }
                 }
             }
-        }
-    }, [data, setValue, unregister]);
+        }, [data, setValue, unregister]
+    )
+    ;
 
 
-
-
-    const onSubmit = async(d) => {
+    const onSubmit = async (d) => {
         console.log(d)
-        try{
-            const res = await axios.post(`${import.meta.env.VITE_API2}/api/extract/update`,d)
+        try {
             // if(res.status === 200){
             //     setData(prev => ({...prev, isOpen: false, data: null}))
             // }
+            const res = await toast.promise(
+                axios.post(`${import.meta.env.VITE_API2}/api/extract/update`, d)
+                , {
+                    pending: "updating data ...",
+                    success: "data updated",
+                    error: "error in updating data"
+                },{
+                    position: "bottom-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "dark",
+                    transition: Bounce,
+                })
             console.log(res.data)
-        }catch (e) {
+        } catch (e) {
             console.log(e)
         }
     }
@@ -131,15 +151,9 @@ export const UpdateSearchWindow = ({data, setData}) => {
                                     onClick={() => {
                                         setValue('price', s_price)
                                         setValue('calc_price', s_price)
-                                    }}>suggested price: <span
-                                    className="flex mx-2 flex-col justify-center items-center"><p>{indPrice[0].quantity}-{indPrice[0].priceNumber}</p><p>{indPrice[1] && `${indPrice[1].quantity}-${indPrice[1].priceNumber}`}</p></span>| {s_price}
+                                    }}>ind price: <span
+                                    className="flex mx-2 flex-col justify-center items-center"><p>{indPrice[0].quantity}-{indPrice[0].priceNumber}</p><p>{indPrice[1] && `${indPrice[1].quantity}-${indPrice[1].priceNumber}`}</p></span>| {s_price && s_price}
                                 </div>
-                            </div>
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <label className="text-lg text-center md:text-left">cost_price: </label>
-                                <input {...register("cost_price")}
-                                       placeholder="please enter product cost_price"
-                                       className="rounded-md py-1 w-full text-black text-center"/>
                             </div>
                             <div className="flex flex-col md:flex-row gap-4">
                                 <label className="text-lg text-center md:text-left">sale_price: </label>
@@ -202,22 +216,18 @@ export const UpdateSearchWindow = ({data, setData}) => {
                                        defaultValue={null}
                                        className="rounded-md py-1 w-full text-black text-center"/>
                                 <div
-                                    className="text-sm md:absolute flex justify-center items-center md:left-10 md:bottom-5"
+                                    className="text-sm md:absolute flex justify-center items-center md:left-10 md:bottom-10"
                                     onClick={() => {
                                         setValue('each.price', s_price)
                                         setValue('each.calc_price', s_price)
                                     }
-                                    }>suggested price: <span
-                                    className="flex mx-2 flex-col justify-center items-center"><p>{indPrice[0].quantity}-{indPrice[0].priceNumber}</p><p>{indPrice[1] && `${indPrice[1].quantity}-${indPrice[1].priceNumber}`}</p></span>| <span
-                                    className={`${B_price && 'md:mb-5'} ml-2`}>{s_price}</span>
+                                    }>ind price: {indPrice[0] && indPrice[0].quantity}-{indPrice[0] && indPrice[0].priceNumber}{s_price ? ` | ${s_price}` : " | no suggest"}
+
+                                    {/*<span*/}
+                                    {/*    className={`${s_price && 'md:mb-5'} ml-2`}>*/}
+                                    {/*    {s_price}*/}
+                                    {/*</span>*/}
                                 </div>
-                            </div>
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <label className="text-lg text-center md:text-left md:w-24">cost_price: </label>
-                                <input {...register("each.cost_price")}
-                                       placeholder="please enter product cost_price"
-                                       defaultValue={null}
-                                       className="rounded-md py-1 w-full text-black text-center"/>
                             </div>
                             <div className="flex flex-col md:flex-row gap-4">
                                 <label className="text-lg text-center md:text-left md:w-24">sale_price: </label>
@@ -263,17 +273,11 @@ export const UpdateSearchWindow = ({data, setData}) => {
                                         onClick={() => {
                                             setValue('box.price', B_price)
                                             setValue('box.calc_price', B_price)
-                                        }}>suggested price: <span
-                                        className="flex mx-2 flex-col justify-center items-center"><p>{indPrice[0].quantity}-{indPrice[0].priceNumber}</p><p>{indPrice[1] && `${indPrice[1].quantity}-${indPrice[1].priceNumber}`}</p></span>| <span
-                                        className={`md:mt-5 ml-2`}>{B_price && B_price}</span>
+                                        }}>
+                                        <p>
+                                            {indPrice[1] && `${indPrice[1].quantity}-${indPrice[1].priceNumber}${B_price && ` | ${B_price}`}`}
+                                        </p>
                                     </div>
-                                </div>
-                                <div className="flex flex-col md:flex-row gap-4">
-                                    <label className="text-lg text-center md:text-left md:w-24">cost_price: </label>
-                                    <input {...register("box.cost_price")}
-                                           placeholder="please enter product cost_price"
-                                           defaultValue={null}
-                                           className="rounded-md py-1 w-full text-black text-center"/>
                                 </div>
                                 <div className="flex flex-col md:flex-row gap-4">
                                     <label className="text-lg text-center md:text-left md:w-24">sale_price: </label>
@@ -307,6 +311,7 @@ export const UpdateSearchWindow = ({data, setData}) => {
                     </form>
                 }
             </div>
+            <ToastContainer/>
         </div>
     )
 }

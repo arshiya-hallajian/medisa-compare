@@ -42,8 +42,8 @@ export const Search = () => {
 
     const getData = async (url) => {
         try {
-            const socket = await io(import.meta.env.VITE_API)
-            const res = await axios.get(`${import.meta.env.VITE_API}/api/extract/search?search=${url}`)
+            const socket = await io(import.meta.env.VITE_API2)
+            const res = await axios.get(`${import.meta.env.VITE_API2}/api/extract/search?search=${url}`)
             console.log(res.data)
 
 

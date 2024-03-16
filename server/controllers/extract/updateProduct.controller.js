@@ -9,7 +9,7 @@ module.exports.updateProductController = async (req, res) => {
                 name: req.body.name,
                 sku: req.body.sku,
                 price: req.body.price,
-                cost_price: req.body.cost_price,
+                calculated_price: req.body.calc_price,
                 sale_price: req.body.sale_price,
                 mpn: req.body.mpn,
             }
@@ -32,7 +32,7 @@ module.exports.updateProductController = async (req, res) => {
                 const each_id = variants[0].id
                 const updateObj = {
                     price: each.price,
-                    cost_price: each.cost_price,
+                    calculated_price: each.calc_price,
                     sale_price: each.sale_price,
                 }
                 await update_medisa_variant(req.body.id, each_id, updateObj)
@@ -41,7 +41,7 @@ module.exports.updateProductController = async (req, res) => {
                     const box_id = variants[1].id
                     const updateObj = {
                         price: box.price,
-                        cost_price: box.cost_price,
+                        calculated_price: box.calc_price,
                         sale_price: box.sale_price,
                     }
                     await update_medisa_variant(req.body.id, box_id, updateObj)
