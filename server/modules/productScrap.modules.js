@@ -60,6 +60,7 @@ const medisaSearchByMpn = async (mpn) => {
                 if (x['option_set_id'] == null) {
                     // console.log("type null")
                     tmp = {
+                        stock: x['inventory_level'],
                         type: 'normal',
                         id: x['id'],
                         name: x['name'],
@@ -131,6 +132,7 @@ const medisaSearchByMpn = async (mpn) => {
                     }
                     // console.log(price)
                     tmp = {
+                        stock: x['inventory_level'],
                         type: 'variant',
                         id: x['id'],
                         name: x['name'],

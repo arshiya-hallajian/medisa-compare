@@ -44,12 +44,8 @@ const joyaMedical_search = async (search, name) => {
 
         for (let i = 0; i < search_joya_result.length; i++) {
             const suggest = search_joya_result[i];
-
-
             if (!compareNames(suggest.title, name, 0.2)) {
-                // Remove the element from the array
                 search_joya_result.splice(i, 1);
-                // Adjust the index to account for the removed element
                 i--;
             }
         }
@@ -69,30 +65,69 @@ const joyaMedical_search = async (search, name) => {
         const unitText = $('table > thead > tr > th:first').text().toLowerCase();
 
 
-        const extractPrice = (element) => {
-            const unit = element.find('td:eq(0)').text();
-            const priceString = element.find('td:eq(1)').text();
+        const extractPrice = (type) => {
+            let main;
+            if (type === 'each') {
+                if ($('tbody > tr.pvt-tr:first td:eq(0)').text().toLowerCase().includes('each')) {
+                    main = $('tbody > tr.pvt-tr:first');
+                }else{
+                    main = $('tbody > tr.pvt-tr:eq(1)');
+                }
 
-            if (!unit || !priceString) {
-                return null;
+            } else if (type === 'box') {
+                if (!$('tbody > tr.pvt-tr:first td:eq(0)').text().toLowerCase().includes('each')) {
+                    main = $('tbody > tr.pvt-tr:first');
+                }else{
+                    main = $('tbody > tr.pvt-tr:eq(1)');
+                }
             }
+            if (main.find('td:eq(1) p.gst-free-wrap').length > 0) {
+                const unit = main.find('td:eq(0)').text();
+                const priceString = main.find('td:eq(1) bdi').text();
 
-            const regex = /Ex\. GST : \$([\d.]+)Inc\. GST : \$([\d.]+)/;
-            const match = priceString.match(regex);
 
-            if (!match) {
-                return null;
+                if (!unit || !priceString) {
+                    return null;
+                }
+
+                const exGst = priceString;
+                const incGst = "free";
+                //
+                return {unit, exGst, incGst};
+            } else {
+                const unit = main.find('td:eq(0)').text();
+                const priceString = main.find('td:eq(1)').text();
+
+
+                if (!unit || !priceString) {
+                    return null;
+                }
+
+                const regex = /Ex\. GST : \$([\d.]+)Inc\. GST : \$([\d.]+)/;
+                const match = priceString.match(regex);
+
+                if (!match) {
+                    return null;
+                }
+
+                const exGst = match[1];
+                const incGst = match[2];
+
+                return {unit, exGst, incGst};
             }
-
-            const exGst = match[1];
-            const incGst = match[2];
-
-            return {unit, exGst, incGst};
         }
 
-
-        const eachPrice = extractPrice($('tbody > tr.pvt-tr:first'));
-        const boxPrice = extractPrice($('tbody > tr.pvt-tr:eq(1)'));
+        let eachPrice = null;
+        let boxPrice = null;
+        console.log(unitText)
+        if (unitText.includes('each') && (unitText.includes('box') || unitText.includes('pkt'))) {
+            eachPrice = extractPrice("each");
+            boxPrice = extractPrice("box");
+        } else if (unitText.includes('each')) {
+            eachPrice = extractPrice('each');
+        } else if (unitText.includes('box') || unitText.includes("pkt")) {
+            boxPrice = extractPrice('box');
+        }
 
 
         allData.push({title, link, eachPrice, boxPrice})

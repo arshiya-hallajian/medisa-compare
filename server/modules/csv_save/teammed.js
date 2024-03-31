@@ -74,6 +74,7 @@ const teammed_search = async (mpn, name) => {
             const url  = everyLink;
 
             const title = $('div.row div.secondary-text > h3').text();
+            console.log(title)
 
             const price = $('#main_content div.d-flex.align-items-end > span.h1.fw-bolder.primary-text.m-0.px-2').text();
 
@@ -91,11 +92,11 @@ const teammed_search = async (mpn, name) => {
             let stockStatus = null;
 
             if (stockStatusText.toLowerCase().includes("in stock")) {
-                stockStatus = true;
+                stockStatus = "yes";
             } else if (stockStatusText.toLowerCase().includes("stock 1-7 days")) {
                 stockStatus = "limited";
             } else if (stockStatusText.toLowerCase().includes("out of stock")) {
-                stockStatus = false;
+                stockStatus = "no";
             }else{
                 stockStatus = stockStatusText.toLowerCase()
             }

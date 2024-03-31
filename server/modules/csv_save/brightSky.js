@@ -40,9 +40,7 @@ const brightSky_Search = async (search,name) => {
             for (let i = 0; i < search_in_brightSky_result.length; i++) {
                 const suggest = search_in_brightSky_result[i];
                 if (!compareNames(suggest.value, name, 0.4)) {
-                    // Remove the element from the array
                     search_in_brightSky_result.splice(i, 1);
-                    // Adjust the index to account for the removed element
                     i--;
                 }
             }
@@ -64,16 +62,16 @@ const brightSky_Search = async (search,name) => {
             let stockStatus = null;
 
             if (stockStatusText.toLowerCase().includes("in stock")) {
-                stockStatus = true;
+                stockStatus = "yes";
             } else if (stockStatusText.toLowerCase().includes("Available on backorder")) {
                 stockStatus = "limited";
             } else if (stockStatusText.toLowerCase().includes("out of stock")) {
-                stockStatus = false;
+                stockStatus = "no";
             }else{
                 stockStatus = stockStatusText.toLowerCase();
             }
 
-            const unitInPackaging = $('#main-content > div.et-l.et-l--body div > p > span.uom:first').text()
+            const unitInPackaging = $('#main-content > div.et-l.et-l--body div > p > span.uom:first').text().toLowerCase()
 
 
             allData.push({

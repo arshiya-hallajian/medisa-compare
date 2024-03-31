@@ -1,6 +1,6 @@
 require('dotenv').config();
 const axios = require('axios');
-axios.defaults.timeout = 10000;
+axios.defaults.timeout = 70000;
 const express = require('express');
 const cors = require("cors");
 const http = require('http');

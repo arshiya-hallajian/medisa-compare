@@ -25,12 +25,14 @@ const independence_search = async (search, name) => {
             const title = main_div.find('h1.page-title > span').text()
             const price = indPage_price_scrap($, main_div);
             const stocks = indPage_stock_scrap($);
+            // console.log(price)
             const url = everyLink;
 
             if (compareNames(title, name, 0.2)) {
                 arrayOfData.push({title, price, stocks, url})
             }
         }
+        return arrayOfData
     } catch (e) {
         console.log("error in independence_search: " + e.message);
         return null

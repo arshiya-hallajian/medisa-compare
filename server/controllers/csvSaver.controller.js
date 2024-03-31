@@ -1,4 +1,5 @@
 const fs = require("fs");
+const {Parser} = require("json2csv")
 const {parse} = require("csv-parse");
 const csvSave = require("../models/csvSave.model");
 const axios = require("axios");
@@ -23,12 +24,12 @@ module.exports.csvDatabaseRead = async (req, res) => {
 
         let query;
         if (type === "mpn") {
-            query = { mpn_mpns: { $in: [search] } };
+            query = {mpn_mpns: {$in: [search]}};
         } else if (type === "brand") {
             query = {
                 $or: [
-                    { medisa_title: new RegExp(search, "i") }, // Case-insensitive search in medisa_title
-                    { company_brand: new RegExp(search, "i") } // Case-insensitive search in company_brand
+                    {medisa_title: new RegExp(search, "i")}, // Case-insensitive search in medisa_title
+                    {company_brand: new RegExp(search, "i")} // Case-insensitive search in company_brand
                 ]
             };
         } else {
@@ -41,11 +42,203 @@ module.exports.csvDatabaseRead = async (req, res) => {
             return res.status(404).send("No products found matching the search criteria");
         }
 
+        const json2csvParser = new Parser();
+        const csv = json2csvParser.parse(dbSearch)
+
+
+        res.header('Content-Type', 'text/csv');
+        res.attachment('search_result.csv');
+
         res.status(200).send(dbSearch);
     } catch (e) {
         console.log(e.message)
         return res.status(500).send(e.message)
     }
+}
+
+
+module.exports.csvSaveUpdate = async (req, res) => {
+    if (req.body.searchType && req.body.skus) {
+        const types = req.body.searchType;
+        const skus = req.body.skus;
+
+        console.log("input:", types, skus);
+        try {
+            for (const sku of skus) {
+
+                const db_search = await csvSave.findOne({medisa_sku: sku});
+                // console.log(db_search)
+
+                const isBoxProduct = diagnoseProductSkuType(sku)
+                console.log(isBoxProduct)
+                for (const mpn of db_search.mpn_mpns) {
+                    if (mpn) {
+                        // console.log(mpn)
+
+                        if (types.some(type => type === "Medisa")) {
+                            const medisaResult = await medisaSearchByMpn(mpn);
+                            // console.log(medisaResult.length)
+                            for (const eachmedisa of medisaResult) {
+                                console.log(eachmedisa)
+                                if (eachmedisa.type === "variant") {
+                                    for (const priceObj of eachmedisa.price) {
+                                        if (priceObj.sku === sku) {
+                                            const stock = eachmedisa.stock !== 0 ? "yes" : "no";
+                                            // console.log(priceObj)
+                                            db_search['medisa_title'] = eachmedisa.name;
+                                            db_search['medisa_stock'] = stock;
+                                            db_search['medisa_price'] = priceObj.price[0].price;
+                                        }
+                                    }
+                                } else if (eachmedisa.type === "normal") {
+                                    const stock = eachmedisa.stock !== 0 ? "yes" : "no";
+                                    db_search['medisa_title'] = eachmedisa.name;
+                                    db_search['medisa_stock'] = stock;
+                                    db_search['medisa_price'] = eachmedisa.prices[0].price;
+                                }
+
+                            }
+
+                        }
+
+                        if (types.some(type => type === "Independence")) {
+                            const independent = await independence_search(mpn, db_search['medisa_title'])
+                            if (independent && independent.length > 0) {
+                                const stock = independent[0].stock.available ? "yes" : "no";
+                                db_search['ind_title'] = independent[0].title;
+                                db_search['ind_url'] = independent[0].url;
+                                db_search['ind_sku'] = mpn;
+                                db_search['ind_stock'] = stock;
+                                for (const eachPrice of independent[0].price) {
+                                    // console.log("yfuycvajhvcasjsc")
+                                    if (eachPrice.quantity.includes('1') && !isBoxProduct) {
+                                        db_search['ind_uip'] = eachPrice.quantity
+                                        db_search['ind_sellPrice'] = eachPrice.priceNumber
+                                        // console.log("each")
+                                    } else if (isBoxProduct && !eachPrice.quantity.includes('1')) {
+                                        // console.log("box")
+                                        db_search['ind_uip'] = eachPrice.quantity
+                                        db_search['ind_sellPrice'] = eachPrice.priceNumber
+                                    } else {
+                                        console.log("none of them")
+                                    }
+                                }
+                            } else {
+                                console.log("no product")
+                            }
+                        }
+
+
+                        if (types.some(type => type === "Teammed")) {
+                            const teammedData = await teammed_search(mpn, db_search['medisa_title']);
+                            if (teammedData && teammedData.length > 0) {
+                                console.log(teammedData)
+                                db_search['teammed_title'] = teammedData[0].title;
+                                db_search['teammed_url'] = teammedData[0].url;
+                                db_search['teammed_uip'] = teammedData[0].unitInPackaging;
+                                db_search['teammed_stock'] = teammedData[0].stockStatus;
+                                db_search['teammed_sellPrice'] = teammedData[0].price;
+                            } else {
+                                console.log("no product")
+                            }
+                        }
+
+
+                        if (types.some(type => type === "BrightSky")) {
+                            const brightSky = await brightSky_Search(mpn, db_search['medisa_title']);
+                            if (brightSky && brightSky.length > 0) {
+                                // console.log(brightSky)
+                                if (!isBoxProduct && brightSky[0].unitInPackaging === "each") {
+                                    console.log("each")
+                                    db_search['brightSky_title'] = brightSky[0].title;
+                                    db_search['brightSky_url'] = brightSky[0].url;
+                                    db_search['brightSky_uip'] = brightSky[0].unitInPackaging;
+                                    db_search['brightSky_stock'] = brightSky[0].stockStatus;
+                                    db_search['brightSky_price'] = brightSky[0].price;
+                                } else if (isBoxProduct && brightSky[0].unitInPackaging !== "each") {
+                                    console.log("box")
+
+                                    db_search['brightSky_title'] = brightSky[0].title;
+                                    db_search['brightSky_url'] = brightSky[0].url;
+                                    db_search['brightSky_uip'] = brightSky[0].unitInPackaging;
+                                    db_search['brightSky_stock'] = brightSky[0].stockStatus;
+                                    db_search['brightSky_price'] = brightSky[0].price;
+                                } else {
+                                    console.log("none of them")
+                                }
+
+                            } else {
+                                console.log("no product")
+                            }
+                        }
+
+
+                        if (types.some(type => type === "JoyaMedical")) {
+                            const joyaMedical = await joyaMedical_search(mpn, db_search['medisa_title'])
+                            if (joyaMedical && joyaMedical.length > 0) {
+                                db_search['joya_title'] = joyaMedical[0].title;
+                                db_search['joya_url'] = joyaMedical[0].link;
+                                if (!isBoxProduct && joyaMedical[0].eachPrice) {
+                                    console.log("each")
+                                    db_search['joya_uip'] = joyaMedical[0].eachPrice.unit;
+                                    db_search['joya_stock'] = "yes";
+                                    db_search['joya_price'] = joyaMedical[0].eachPrice.exGst;
+                                } else if (isBoxProduct && joyaMedical[0].boxPrice) {
+                                    console.log("box")
+                                    db_search['joya_uip'] = joyaMedical[0].boxPrice.unit;
+                                    db_search['joya_stock'] = "yes";
+                                    db_search['joya_price'] = joyaMedical[0].boxPrice.exGst;
+                                }
+                            } else {
+                                console.log("no product")
+                            }
+                        }
+
+                        // if (types.some(type => type === "AlphaMedical")) {
+                        //
+                        // }
+
+                        if (types.some(type => type === "Medshop")) {
+                            const medShop = await medShop_search(mpn, db_search['medisa_title'])
+                            if (medShop && medShop.length > 0) {
+                                console.log(medShop)
+                                db_search['medshop_title'] = medShop[0].title;
+                                db_search['medshop_url'] = medShop[0].url;
+                                db_search['medshop_uip'] = medShop[0].unitInPackaging;
+                                db_search['medshop_stock'] = medShop[0].stocks;
+                                if (!isBoxProduct && medShop[0].unitInPackaging.includes('each')) {
+                                    db_search['medshop_price'] = medShop[0].price;
+                                } else if (isBoxProduct && !medShop[0].unitInPackaging.includes('each')) {
+                                    db_search['medshop_price'] = medShop[0].price;
+                                }
+                            } else {
+                                console.log("no product")
+                            }
+                        }
+
+
+                    }
+                }
+            }
+
+            res.send("ok")
+        } catch (e) {
+            res.status(400).send("error in csvSaveUpdate");
+        }
+
+    } else {
+        res.status(400).send("invalid posts");
+    }
+}
+
+const diagnoseProductSkuType = (sku) => {
+    const trimmedSku = sku.replace(/_\w$/, "");
+
+    const lastCharacter = trimmedSku.slice(-1);
+    const isEachProduct = lastCharacter === '1';
+
+    return !isEachProduct
+
 }
 
 
@@ -59,7 +252,10 @@ module.exports.csvSaver = async (req, res) => {
     try {
         for (const row of fixedData) {
 
-            const checkExisting = await csvSave.findOne({medisa_sku: row.medisa_sku});
+            let checkExisting = null
+            if (row.medisa_sku) {
+                checkExisting = await csvSave.findOne({medisa_sku: row.medisa_sku});
+            }
 
 
             // for (const mpn of row.mpn_mpns) {

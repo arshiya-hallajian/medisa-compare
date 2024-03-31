@@ -50,12 +50,11 @@ const medShop_search = async (search, name) => {
         if (!searchResult || searchResult.length === 0) {
             console.log('no results found')
             return null
-        } else if(searchResult.length > 0) {
-            for (const product of searchResult) {
-                products_links.push(`https://www.medshop.com.au/products/${product.handle}`)
+        } else if (searchResult.length > 0) {
+            for (const eproduct of searchResult) {
+                products_links.push(`https://www.medshop.com.au/products/${eproduct.handle}`)
             }
         }
-
 
 
         const arrayOfData = []
@@ -66,31 +65,36 @@ const medShop_search = async (search, name) => {
 
             // console.log(page_result.product.variants)
 
-            for(const variant of page_result.product.variants.nodes) {
-                if(variant.barcode === search){
-                    const price = variant.price.amount;
-                    const title = page_result.product.handle;
-                    const type = variant.title;
-                    const stocks = variant.availableForSale;
-                    const url = everyLink;
+            // console.log(JSON.parse(page_result))
+            const sepratorIndex = page_result.indexOf('\n');
+            const firstJson = page_result.substring(0, sepratorIndex)
+            const object = JSON.parse(firstJson)
 
-                    let unitInPackaging = null
-                    if(!variant.custom_measure_unit){
-                        unitInPackaging = "each";
-                    }else{
-                        unitInPackaging = variant.custom_measure_unit
-                    }
 
-                    arrayOfData.push({
-                        title,
-                        price,
-                        type,
-                        stocks,
-                        url,
-                        unitInPackaging
-                    })
-                // console.log(price,title, type, stocks, url,unitInPackaging)
+            for (const variant of object.product.variants.nodes) {
+                // console.log(variant)
+
+                const price = variant.price.amount;
+                const title = object.product.handle;
+                const type = variant.title;
+                const stocks = variant.availableForSale ? "yes" : "no";
+                const url = everyLink;
+
+                let unitInPackaging = null
+                if (!variant.custom_measure_unit) {
+                    unitInPackaging = "each";
+                } else {
+                    unitInPackaging = variant.custom_measure_unit.value.toLowerCase();
                 }
+
+                arrayOfData.push({
+                    title,
+                    price,
+                    type,
+                    stocks,
+                    url,
+                    unitInPackaging
+                })
 
             }
 
