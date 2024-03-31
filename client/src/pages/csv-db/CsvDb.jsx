@@ -1,9 +1,10 @@
-import Confirm from "../priceScrap/Confirm.jsx";
+
 import {toast, ToastContainer} from "react-toastify";
 import {useState} from "react";
 import axios from "axios";
 import {ArchiveBoxIcon, MagnifyingGlassCircleIcon} from "@heroicons/react/24/solid";
 import {MagnifyingGlassIcon} from "@heroicons/react/24/solid/index.js";
+import SimpleView from "./SimpleView.jsx";
 
 
 export const CsvDb = () => {
@@ -13,6 +14,7 @@ export const CsvDb = () => {
     const [SearchInput, setSearchInput] = useState(null)
     const [SearchMode, setSearchMode] = useState(false)
     const [searchType, setSearchType] = useState("mpn")
+    const [viewMode, setViewMode] = useState(true)
 
 
     const onFileSubmitHandler = async (e) => {
@@ -26,7 +28,7 @@ export const CsvDb = () => {
 
             // const socket = await io(import.meta.env.VITE_API)
 
-            const res = await axios.post(`${import.meta.env.VITE_API2}/api/csvSave/`, formData);
+            const res = await axios.post(`${import.meta.env.VITE_API}/api/csvSave/`, formData);
 
 
             if (res.status === 200) {
@@ -74,6 +76,55 @@ export const CsvDb = () => {
         setFile(e.target.files)
         console.log(e.target.files)
     }
+
+
+    const handleExportCSV = async () => {
+        try {
+            // Show loading indicator while processing
+
+
+            // Fetch data from the server or any other source
+            const response = await axios.get(`${import.meta.env.VITE_API2}/api/csvSave/?s=${SearchInput}&type=${searchType}`); // Replace fetchData with your actual data fetching function
+
+            // Convert search result to CSV format
+            const csvContent = await convertToCSV(response.data);
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+
+            const fileName = `search_result_${new Date().toISOString()}.csv`;
+
+            const anchor = document.createElement('a');
+            anchor.href = window.URL.createObjectURL(blob);
+            anchor.download = fileName;
+
+            anchor.click();
+            window.URL.revokeObjectURL(anchor.href);
+
+        } catch (error) {
+            console.error('Error exporting CSV:', error);
+        }
+    };
+
+    const convertToCSV = (data) => {
+        return new Promise(resolve => {
+            if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object') {
+                throw new Error('Invalid data format. Expected an array of objects.');
+            }
+
+            // Extract headers from the first object
+            const headers = Object.keys(data[0]);
+
+            // Convert data to CSV format
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => headers.map(header => row[header]).join(','))
+            ].join('\n');
+
+            resolve(csvContent);
+        })
+    };
+
+
 
 
     const onSearchSubmitHandler = async (e) => {
@@ -161,8 +212,32 @@ export const CsvDb = () => {
 
                 </div>
 
+                {(data && SearchMode) && (
+                    <div onClick={handleExportCSV} className="absolute top-2 right-1/2 translate-x-1/2 md:top-20 md:right-20 px-5 rounded-full bg-amber-400 flex items-center justify-center">export csv</div>
+                )}
 
-                {data &&
+                {data && <div onClick={()=> setViewMode(!viewMode)}
+                    className="absolute top-10 md:top-20 md:left-20 translate-x-1/2 bg-amber-400 rounded-full flex justify-center items-center p-2">
+                    {
+                        viewMode ? <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                        className="w-6 h-6">
+                                <path fillRule="evenodd"
+                                      d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z"
+                                      clipRule="evenodd"/>
+                            </svg> :
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
+                                 stroke="currentColor" className="w-6 h-6">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                      d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
+                            </svg>
+
+                    }
+
+
+                </div>}
+
+
+                {data && (!viewMode ?
                     <div className="overflow-auto scrollbar-thin">
                         <table className="w-full border-collapse text-slate-300">
                             <thead>
@@ -198,7 +273,6 @@ export const CsvDb = () => {
                                 <th className="border" colSpan={4}>
                                     medshop(competitor)
                                 </th>
-
                             </tr>
                             <tr className="text-lg whitespace-nowrap">
                                 <th className="border px-2">image</th>
@@ -266,7 +340,6 @@ export const CsvDb = () => {
                             {data ? data.map((row, index) => {
                                 return (
                                     <tr key={index}>
-
                                         <td className="border w-48 h-20">
                                             <p>{row.mpn_image &&
                                                 <img className="rounded-xl w-full h-full " src={row.mpn_image}
@@ -286,7 +359,6 @@ export const CsvDb = () => {
                                                     }
                                                 )}
                                             </ul>
-
                                         </td>
                                         <td className="border px-3">
                                             <p>{row.mpn_status && row.mpn_status}</p>
@@ -315,7 +387,6 @@ export const CsvDb = () => {
                                         <td className="border">
                                             <p>{row['company_abbreviation'] && row['company_abbreviation']}</p>
                                         </td>
-
                                         <td className="border bg-gray-700 overflow-hidden ">
                                             <a className="underline text-blue-400"
                                                href={row.medisa_url ? row.medisa_url : "#"} target="_blank"
@@ -323,7 +394,6 @@ export const CsvDb = () => {
                                                 <p className="break-words line-clamp-3 w-[300px]">{row.medisa_title && row.medisa_title}</p>
                                             </a>
                                         </td>
-
                                         <td className="border">
                                             <p>{row.medisa_serpRank && row.medisa_serpRank}</p>
                                         </td>
@@ -490,7 +560,7 @@ export const CsvDb = () => {
                             </tr>}
                             </tbody>
                         </table>
-                    </div>}
+                    </div> : <SimpleView data={data}/>)}
             </div>
         </div>
     )
